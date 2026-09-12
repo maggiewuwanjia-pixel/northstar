@@ -1,4 +1,5 @@
 const $=s=>document.querySelector(s);
+document.addEventListener('click',e=>{const link=e.target.closest('[data-open-feature]');if(link){stop();select(Number(link.dataset.openFeature))}});
 const journeys=[
  ['导入资料','直播结束后','用户从后台导出经营报表，整理可用的直播画面与内容素材。','用户动作','上传 CSV / XLSX；补充有权使用的视频、截图与文档。','产品产出','统一场次与经营记录，保留数据来源。'],
  ['回看表现','找到值得研究的场次','先看收入、观看和峰值在线，再结合关键时刻的画面回看。','用户动作','选择日期与直播场次，查看数据与已上传证据。','产品产出','单场复盘视图。AI 提取话术和画面要点是后续能力。'],
