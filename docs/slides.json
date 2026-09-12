@@ -1,0 +1,60 @@
+{
+  "style": "minimal_gray",
+  "footer": "北极星 NorthStar · 可交互原型",
+  "page_numbers": true,
+  "slides": [
+    {"type": "cover", "title": "北极星 NorthStar", "subtitle": "视频号经营者的 AI 副驾驶 · 可交互原型（2026-09）", "variant": "centered"},
+    {"type": "agenda", "title": "目录", "topics": ["产品定位", "设计系统", "七大功能页", "知识库四视图", "数据流与部署", "下一步计划"]},
+    {"type": "content", "title": "产品定位：数据 → 结论 → 行动", "items": [
+      "目标用户：视频号教育类中小博主（案例：清华优优 22.4w 粉）",
+      "痛点：视频号助手后台只有数据没有结论，创作者不知道下一步做什么",
+      "解法：把后台数据、脚本库、直播复盘、对标监控收敛为一个工作台",
+      "AI 助手 Cue 常驻右侧：回答带来源引用，结论一键落地到脚本工作台"
+    ]},
+    {"type": "two_column", "title": "设计系统 UI v3（苹果风 · 去 AI 味）", "left": [
+      "暖白 #FAFAF8 + 白卡片 + 1px 细边",
+      "近黑 #1A1A1A 主按钮（Gumloop 风）",
+      "侧栏/顶栏/Copilot 磨砂半透明 + backdrop blur",
+      "微信绿只做点缀：进度条、状态点、语义标签"
+    ], "right": [
+      "墨绿深色 hero #0E1F16：北极星卡 + 知识总览",
+      "零空占位：全部真实封面 / 头像 / 后台截图",
+      "参考：Gumloop、LocalCan、macOS",
+      "已删除全部霓虹发光"
+    ]},
+    {"type": "section", "title": "七大功能页"},
+    {"type": "image", "title": "经营看板：结论先行（3 行动建议 → 北极星 → KPI → 趋势 → 画像 → 排期）", "image_path": "screenshots/v3-dash-top.png"},
+    {"type": "image", "title": "内容表现 TOP：真实封面，零占位", "image_path": "screenshots/v3-dash-videos.png"},
+    {"type": "image", "title": "短视频脚本：卡片工作台（封面 + 标签 + 来源）", "image_path": "screenshots/v3-scripts-4.png"},
+    {"type": "image", "title": "直播复盘：8 场真实场次 + 数据卡 + 视频号助手后台截图 + 画面复盘", "image_path": "screenshots/v3-live-1115.png"},
+    {"type": "image", "title": "直播脚本：标准场 / 高成交场 / 节点场 三套模板", "image_path": "screenshots/v3-livescript.png"},
+    {"type": "image", "title": "对标账号：监控中（真实头像）+ AI 发现", "image_path": "screenshots/v3-bench.png"},
+    {"type": "image", "title": "爆款抓取：真实封面 + 一键拆脚本", "image_path": "screenshots/v3-bench-virals.png"},
+    {"type": "image", "title": "素材库：全局拖拽，链接/文件按域名自动归类", "image_path": "screenshots/v3-library.png"},
+    {"type": "section", "title": "知识库 · 四视图"},
+    {"type": "image", "title": "知识库：个人空间 / 团队空间 两级结构", "image_path": "screenshots/v3-wiki.png"},
+    {"type": "image", "title": "视图一 · 原始文件：chunk 切片（序号 + 字数 + 已向量化）", "image_path": "screenshots/v3-wiki-raw.png"},
+    {"type": "image", "title": "视图二 · AI 摘要：知识总览 hero + 主题分区", "image_path": "screenshots/v3-wiki-summary.png"},
+    {"type": "image", "title": "视图四 · 知识图谱：摘要 / 实体 / 概念 三层放射图", "image_path": "screenshots/v3-wiki-graph.png"},
+    {"type": "section", "title": "数据流与部署"},
+    {"type": "content", "title": "数据流", "items": [
+      "视频号助手后台 → Playwright 扫码抓取 / CSV 导入兜底 → FastAPI + SQLite",
+      "飞书文档（脚本/复盘/直播脚本）→ tenant_token + docx API → 同步入库",
+      "9 组 REST API → Vue3 SPA；无后端时自动降级 dist 内置 data.json 快照",
+      "混元 Hunyuan 问答（.env 填 key 即通）→ Cue 引用知识库回答"
+    ]},
+    {"type": "timeline", "title": "里程碑", "milestones": [
+      {"label": "P1 后端", "desc": "19 表 + 9 组 API + 种子数据 ✅"},
+      {"label": "P2 前端", "desc": "Vue3 七视图 ✅"},
+      {"label": "P3 接入层", "desc": "登录/抓取/飞书/混元 ✅（凭证待填）"},
+      {"label": "P4 UI v3", "desc": "真实素材 + 知识库四视图 + 磨砂 ✅"},
+      {"label": "P5 部署", "desc": "腾讯云轻量 + 域名 + HTTPS（待执行）"},
+      {"label": "P6 激活", "desc": "混元问答 / 飞书同步（填 .env）"}
+    ]},
+    {"type": "summary", "title": "总结", "points": [
+      "可交互原型已完成：7 大功能页 + 知识库四视图，全部真实素材",
+      "前后端打通，静态快照兜底，一套 dist 两种部署",
+      "PRD、部署指南已随附"
+    ], "conclusion": "下一步：买域名 + 腾讯云轻量部署上线，填 .env 激活混元与飞书"}
+  ]
+}

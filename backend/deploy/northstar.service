@@ -1,0 +1,17 @@
+# 北极星 NorthStar · systemd 服务（裸机部署方案，腾讯云轻量可选）
+# 放置到 /etc/systemd/system/northstar.service 后：
+#   systemctl daemon-reload && systemctl enable --now northstar
+[Unit]
+Description=NorthStar backend (FastAPI)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/northstar/backend
+EnvironmentFile=/opt/northstar/backend/.env
+ExecStart=/opt/northstar/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

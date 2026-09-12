@@ -1,0 +1,28 @@
+# Runtime secrets and local authentication
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local databases, uploads, generated replay evidence and QR login state
+backend/data/
+backend/*.db
+backend/*.sqlite*
+backend/qrcode.png
+
+# Front-end build and installed dependencies
+frontend/node_modules/
+frontend/dist/
+
+# Python / editor / operating-system caches
+__pycache__/
+*.py[cod]
+.DS_Store
+.idea/
+.vscode/
+
+# Office temporary files
+~$*
