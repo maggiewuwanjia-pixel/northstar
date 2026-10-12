@@ -1,0 +1,37 @@
+{
+  "count": 196,
+  "subjects": {
+    "数学": 7,
+    "物理": 4,
+    "英语": 181,
+    "语文": 4
+  },
+  "formats": {
+    ".pdf": 7,
+    ".pptx": 37,
+    ".png": 2,
+    ".xmind": 3,
+    ".docx": 125,
+    ".jpg": 21,
+    ".xls": 1
+  },
+  "text_extracted": 168,
+  "errors": [
+    {
+      "file": "数学/优优数学课程讲义.pdf",
+      "error": "File has not been decrypted"
+    },
+    {
+      "file": "物理/优优物理课程讲义.pdf",
+      "error": "File has not been decrypted"
+    },
+    {
+      "file": "英语/优优英语课程讲义.pdf",
+      "error": "File has not been decrypted"
+    },
+    {
+      "file": "语文/优优语文课程讲义.pdf",
+      "error": "File has not been decrypted"
+    }
+  ]
+}

@@ -3,7 +3,8 @@ import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Literal
 
 from ..auth import get_current_user, scope_user_id
 from ..database import get_conn, table_rows
@@ -12,14 +13,25 @@ router = APIRouter(prefix="/api/channels", tags=["channels"])
 
 
 class ChannelIn(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=100)
     finder_uin: str = ""
-    login_state: str = "未登录"
+    platform: Literal["wechat", "xiaohongshu"] = "wechat"
+    profile: str = Field(default="", max_length=2000)
+
+
+def migrate_platforms():
+    with get_conn() as conn:
+        columns = {r['name'] for r in conn.execute('PRAGMA table_info(channels)')}
+        if 'platform' not in columns:
+            conn.execute("ALTER TABLE channels ADD COLUMN platform TEXT NOT NULL DEFAULT 'wechat'")
+        if 'profile' not in columns:
+            conn.execute("ALTER TABLE channels ADD COLUMN profile TEXT NOT NULL DEFAULT ''")
 
 
 @router.get("")
 def list_channels(user=Depends(get_current_user)):
     """当前用户绑定的视频号账号列表。"""
+    migrate_platforms()
     uid = scope_user_id(user)
     conn = get_conn()
     try:
@@ -31,6 +43,7 @@ def list_channels(user=Depends(get_current_user)):
 @router.post("")
 def create_channel(body: ChannelIn, user=Depends(get_current_user)):
     """绑定一个视频号账号到当前用户。"""
+    migrate_platforms()
     uid = scope_user_id(user)
     name = body.name.strip()
     if not name:
@@ -40,15 +53,13 @@ def create_channel(body: ChannelIn, user=Depends(get_current_user)):
     conn = get_conn()
     try:
         conn.execute(
-            "INSERT INTO channels (id, user_id, name, finder_uin, login_state, "
-            "last_login_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (cid, uid, name, body.finder_uin, body.login_state, None, now),
+            "INSERT INTO channels (id,user_id,name,finder_uin,login_state,last_login_at,created_at,platform,profile) VALUES (?,?,?,?,?,?,?,?,?)",
+            (cid, uid, name, body.finder_uin.strip(), '未登录', None, now, body.platform, body.profile.strip()),
         )
         conn.commit()
-        return {"ok": True, "channel": {"id": cid, "user_id": uid, "name": name,
-                                        "finder_uin": body.finder_uin,
-                                        "login_state": body.login_state,
-                                        "created_at": now}}
+        row = conn.execute("SELECT * FROM channels WHERE id=?", (cid,)).fetchone()
+        return {"ok": True, "channel": dict(row)}
+
     finally:
         conn.close()
 
@@ -56,6 +67,7 @@ def create_channel(body: ChannelIn, user=Depends(get_current_user)):
 @router.delete("/{channel_id}")
 def delete_channel(channel_id: str, user=Depends(get_current_user)):
     """解绑账号（只能删自己的）。"""
+    migrate_platforms()
     uid = scope_user_id(user)
     conn = get_conn()
     try:

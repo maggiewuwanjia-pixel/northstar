@@ -9,16 +9,15 @@ const navItems = [
   { key: 'scripts', label: '短视频脚本', count: () => store.scripts.length },
   { key: 'live-summary', label: '直播复盘', count: () => store.liveSessions.length },
   { key: 'live-script', label: '直播脚本', count: () => store.liveScripts.length },
-  { key: 'bench', label: '对标账号', count: () => store.benchmarks.length },
-  { key: 'library', label: '素材库', count: () => store.library.length }
+  { key: 'bench', label: '对标账号', count: () => store.benchmarks.length }
 ]
 
 // 侧栏底部：展示当前使用的视频号（已绑定优先，否则示例账号）
-const bound = computed(() => store.channels[0])
+const bound = computed(() => store.channels[0] || { name: '清华优优', login_state: '内容已加载', demo: true })
 const accountName = computed(() => bound.value ? bound.value.name : '清华优优')
 const accountDesc = computed(() => {
-  if (bound.value) return '已绑定 · ' + (bound.value.login_state || '待扫码')
-  return store.authUser ? '未绑定 · 点击绑定你的号' : '示例账号 · 登录可绑定'
+  if (bound.value.demo) return '已预绑定 · 内容数据'
+  return '已绑定 · ' + (bound.value.login_state || '待扫码')
 })
 // 移动端：点导航/账号后自动收起抽屉
 function onNav(key) {

@@ -1,6 +1,15 @@
 <script setup>
 import { reactive, computed, ref } from 'vue'
 import { store, toast, createPlanningTask } from '../../store'
+import { productionPlanLanes } from '../../data/planningPeriods'
+const currentRecommendations=computed(()=>{
+ const month=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',month:'numeric'}).format(new Date())
+ return Number(month)===10?[
+  {num:1,tag:'下周',title:'下周该怎么做',body:'十月主线：国庆后恢复学习节奏、月考复盘与期中准备。优先从本月评论和直播提问中筛选痛点，再用播放、关注和留存数据验证选题。'},
+  {num:2,tag:'下条',title:'下条视频怎么拍',body:'建议拍「月考后，先抓住这 3 个失分点」：区分知识漏洞、审题和计算失误，给出一周纠错安排。结尾邀请家长留言具体问题。'},
+  {num:3,tag:'下场',title:'下场直播改什么话题',body:'建议讲「国庆后收心与期中备考」：先收集当前学习问题，再给出阶段判断与短步骤方法，穿插答疑。销售内容依据真实需求承接，直播后复盘留存与成交。'}
+ ]:(store.actions||[])
+})
 
 // 图表 / 列表 视图切换状态（局部）
 const mode = reactive({ trend: 'chart', portrait: {} })
@@ -36,13 +45,20 @@ function homeTaskWeek(task) {
   return Math.floor((new Date(date.getFullYear(), date.getMonth(), date.getDate()) - homeWeekStart.value) / (7 * 86400000))
 }
 function homeLanesFor(index) {
-  const lanes = (store.gantt || []).map(lane => ({ ...lane, items: index === 0 ? [...lane.items] : [] }))
+  const lanes = productionPlanLanes(store.gantt||[],homeWeekStart.value,index)
   store.planningTasks.forEach(task => {
     const slot = homeTaskWeek(task) - index * 4
     const lane = lanes[task.type === 'live' ? 4 : 2]
-    if (lane && slot >= 0 && slot < 4) lane.items.push({ name: task.title, s: slot, e: slot, t: task.type === 'live' ? 'live' : 'video' })
+    if (lane && slot >= 0 && slot < 4){lane.items=lane.items.filter(item=>!(item.s<=slot&&item.e>=slot));lane.items.push({ name: task.title, s: slot, e: slot, t: task.type === 'live' ? 'live' : 'video' })}
   })
-  return lanes
+  return lanes.map(lane => {
+    const occupied = new Set()
+    return {...lane, items: lane.items.filter(item => {
+      const slots = Array.from({length:item.e-item.s+1},(_,i)=>item.s+i)
+      if(slots.some(slot=>occupied.has(slot)))return false
+      slots.forEach(slot=>occupied.add(slot));return true
+    })}
+  })
 }
 function moveHomeGantt(direction) { homeGanttPage.value = Math.max(0, Math.min(2, homeGanttPage.value + direction)) }
 function onHomeGanttWheel(event) {
@@ -84,7 +100,7 @@ function portraitTotal(p) {
   <div>
     <!-- 三句结论 -->
     <div class="actions-strip">
-      <div v-for="a in store.actions" :key="a.num" class="action-card">
+      <div v-for="a in currentRecommendations" :key="a.num" class="action-card">
         <span class="tag">{{ a.tag }}</span>
         <div class="title"><span class="num">{{ a.num }}</span>{{ a.title }}</div>
         <div class="body">{{ a.body }}</div>
@@ -255,10 +271,14 @@ function portraitTotal(p) {
       </div>
       <div v-else class="video-grid video-placeholders">
         <div v-for="item in ['短视频截图占位 01', '短视频截图占位 02', '短视频截图占位 03']" :key="item" class="video-card placeholder-card">
-          <div class="thumb"><img src="/assets/live/demo-replay.svg" :alt="item"><span class="dur">演示占位</span></div>
+          <div class="thumb"><img src="/assets/live/demo-replay.svg" :alt="item"><span class="dur">待补充</span></div>
           <div class="meta"><div class="title"><span class="tag">待导入</span>{{ item }}</div><div class="stats"><span>上传视频号短视频报表、文件或公开链接后替换</span></div></div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.home-gantt .gantt-row{min-height:104px}.home-gantt .gantt-track{min-height:104px;box-sizing:border-box}.home-gantt .gantt-bar{height:64px;box-sizing:border-box;display:flex;align-items:center;font-size:14px;padding:12px 16px;grid-row:1}.home-gantt .gantt-bar.script{background:#C9CBC2}
+</style>

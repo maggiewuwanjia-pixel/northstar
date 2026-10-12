@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .database import init_db, seed_if_empty, migrate_add_user_id
-from .routers import dashboard, wiki, live, bench, scripts, auth, sync, feishu, cue, channels
+from .routers import dashboard, wiki, live, bench, scripts, auth, sync, feishu, cue, channels, knowledge
 
 # 启动即建表 + 空库灌种子数据 + 多用户隔离迁移
 init_db()
@@ -31,6 +31,11 @@ app.include_router(channels.router)
 app.include_router(sync.router)
 app.include_router(feishu.router)
 app.include_router(cue.router)
+from .services.knowledge import init_knowledge
+init_knowledge()
+from .routers.cue import init_cue
+init_cue()
+app.include_router(knowledge.router)
 
 
 @app.get("/")
@@ -41,3 +46,6 @@ def root():
 @app.get("/api/health")
 def health():
     return {"status": "ok", "name": "北极星 NorthStar"}
+
+from .routers import media
+app.include_router(media.router)

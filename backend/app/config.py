@@ -1,11 +1,11 @@
 """配置层 —— 统一从环境变量 / .env 读取所有外部凭证。
 
-所有第三方接入（飞书 / 混元 / 抓取器 / 登录密钥）都走这里，
+所有第三方接入（飞书 / GLM / 抓取器 / 登录密钥）都走这里，
 缺省时自动降级到种子数据，保证「零配置也能跑」。
 
 在 backend/ 目录放一个 .env（参考 .env.example）即可激活对应能力：
   FEISHU_APP_ID / FEISHU_APP_SECRET
-  HUNYUAN_API_KEY
+  MODEL_API_KEY
   JWT_SECRET（登录签名密钥，未设则用随机值，重启后会话失效）
 """
 import os
@@ -38,10 +38,11 @@ FEISHU_LIVE_SCRIPT_DOC = _get(
     "FEISHU_LIVE_SCRIPT_DOC", "https://caocp410jp.feishu.cn/docx/OqMDd8DI0ouQdwxv5WlcWzqOnNg"
 )
 
-# ---------- 混元大模型 ----------
-HUNYUAN_API_KEY = _get("HUNYUAN_API_KEY")
-HUNYUAN_BASE_URL = _get("HUNYUAN_BASE_URL", "https://api.hunyuan.cloud.tencent.com/v1")
-HUNYUAN_MODEL = _get("HUNYUAN_MODEL", "hunyuan-turbos-latest")
+# ---------- GLM大模型 ----------
+MODEL_API_KEY = _get("MODEL_API_KEY")
+MODEL_BASE_URL = _get("MODEL_BASE_URL", "https://tokenhub.tencentmaas.com/v1")
+TEXT_MODEL = _get("TEXT_MODEL", "glm-5.2")
+MULTIMODAL_MODEL = _get("MULTIMODAL_MODEL", "minimax-m3")
 
 # ---------- 登录 / 会话 ----------
 JWT_SECRET = _get("JWT_SECRET", "")
@@ -66,5 +67,5 @@ def feishu_ready() -> bool:
     return bool(FEISHU_APP_ID and FEISHU_APP_SECRET)
 
 
-def hunyuan_ready() -> bool:
-    return bool(HUNYUAN_API_KEY)
+def model_ready() -> bool:
+    return bool(MODEL_API_KEY)

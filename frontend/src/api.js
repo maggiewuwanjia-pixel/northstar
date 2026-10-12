@@ -11,8 +11,28 @@ export function authHeaders() {
 }
 
 async function getJson(path, opts = {}) {
-  const res = await fetch(BASE + path, { ...opts, headers: { ...authHeaders(), ...(opts.headers || {}) } })
-  if (!res.ok) throw new Error(`接口 ${path} 返回 ${res.status}`)
+  const request={...opts,headers:{...authHeaders(),...(opts.headers||{})}}
+  let res
+  try{res=await fetch(BASE+path,request)}
+  catch(error){
+    // 仅重试无写入副作用的模型请求；保存/排期等操作不自动重复提交。
+    if(!['/cue/guest','/cue/intent'].includes(path))throw error
+    try{res=await fetch(BASE+path,request)}catch{throw new Error('与本地服务的连接中断，请点击重新生成重试。问题和引用资料已保留。')}
+  }
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    const validation = Array.isArray(error.detail)
+      ? error.detail.map(item => {
+          const field = Array.isArray(item.loc) ? item.loc[item.loc.length - 1] : '内容'
+          const labels = { title: '资料名称', text: '正文', source: '来源', url: '链接' }
+          return `${labels[field] || field}填写不完整`
+        }).join('；')
+      : ''
+    const failure=new Error(typeof error.detail==='string'?error.detail:error.detail?.message||validation||`接口 ${path} 返回 ${res.status}`)
+    failure.canContinue=error.detail?.can_continue===true
+    failure.code=error.detail?.code
+    throw failure
+  }
   return res.json()
 }
 
@@ -105,6 +125,10 @@ export async function addPlanningTask(task) {
     return { ok: false, error: e.message }
   }
 }
+export async function updatePlanningTask(id, task) {
+  return getJson('/planning-tasks/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(task) })
+}
+export async function deletePlanningTask(id) { return del('/planning-tasks/' + id) }
 
 // ---------- 抓取器 / 扫码登录 / 同步数据 ----------
 export async function syncStatus() {
@@ -146,8 +170,8 @@ export async function listChannels() {
     return []
   }
 }
-export async function addChannel(name, finderUin = '') {
-  return postJson('/channels', { name, finder_uin: finderUin })
+export async function addChannel(name, finderUin = '', platform = 'wechat', profile = '') {
+  return postJson('/channels', { name, finder_uin: finderUin, platform, profile })
 }
 export async function removeChannel(channelId) {
   return del('/channels/' + channelId)
@@ -186,12 +210,29 @@ export async function fetchQrcode() {
   return URL.createObjectURL(blob)
 }
 
-// ---------- Cue（混元）----------
-// 返回 { ready, answer }；ready=false 表示后端未接混元，走前端关键词规则
-export async function cueAsk(question, context = '') {
-  try {
-    return await postJson('/cue', { question, context })
-  } catch (e) {
-    return { ready: false, answer: '' }
-  }
+// ---------- Knowledge / grounded Cue ----------
+export const knowledgeList = () => getJson('/knowledge')
+export const knowledgeDetail = id => getJson('/knowledge/' + id)
+export const knowledgeAnalyze = id => postJson('/knowledge/' + id + '/analyze', {})
+export const knowledgeDelete = id => del('/knowledge/' + id)
+export const knowledgeUpdate = (id, body) => getJson('/knowledge/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+export const knowledgeText = body => postJson('/knowledge/text', body)
+export const knowledgeFeishu = body => postJson('/knowledge/feishu', body)
+export const knowledgeCreateSpace = body => postJson('/knowledge/spaces', body)
+export const knowledgeAddMember = (spaceId, body) => postJson(`/knowledge/spaces/${spaceId}/members`, body)
+export const knowledgeGraph = () => getJson('/knowledge/graph')
+export async function knowledgeUpload(file) {
+  const body = new FormData()
+  body.append('file', file)
+  return getJson('/knowledge/upload', { method: 'POST', body })
 }
+export const cueAsk = (question, context = '', history = [], options = {}) => postJson('/cue', { question, context, history, ...options })
+export const cueConversations = () => getJson('/cue/conversations')
+export const cueConversation = id => getJson('/cue/conversations/' + id)
+export const cueNewConversation = body => postJson('/cue/conversations', body)
+export const cueTasks = () => getJson('/cue/tasks')
+export const cueCreateTask = body => postJson('/cue/tasks', body)
+export const cueSaveArtifact = body => postJson('/cue/artifacts', body)
+
+export const cueGuestAsk = (question, context = '', history = [], options = {}) => postJson('/cue/guest', { question, context, history, ...options })
+export const cueClassifyIntent = (question,page) => postJson('/cue/intent',{question,page})

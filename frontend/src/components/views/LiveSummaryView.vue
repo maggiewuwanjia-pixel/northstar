@@ -1,14 +1,27 @@
 <script setup>
 import { ref, computed, onUnmounted, watch } from 'vue'
 import { store, toast, LIVE_SUMMARY_DOC } from '../../store'
+import LiveTrendChart from '../LiveTrendChart.vue'
+import manualLiveReviews from '../../data/manualLiveReviews.json'
+const manualPdf='/demo-docs/优优账号X直播记录【咨询+精讲课产品销售】.pdf'
+const manualReview=computed(()=>manualLiveReviews[selected.value?.d]||null)
+const manualPdfUrl=computed(()=>encodeURI(manualPdf)+'#page='+(manualReview.value?.page||1))
 
-const selectedDate = ref(store.liveSessions[2] ? store.liveSessions[2].d : (store.liveSessions[0] ? store.liveSessions[0].d : ''))
+const splitRatio=ref(Math.min(65,Math.max(35,Number(localStorage.getItem('northstar-live-split'))||52)))
+const liveGrid=ref(null)
+function moveSplit(event){const box=liveGrid.value?.getBoundingClientRect();if(box)splitRatio.value=Math.min(72,Math.max(28,(event.clientX-box.left)/box.width*100))}
+function stopSplit(){window.removeEventListener('pointermove',moveSplit);window.removeEventListener('pointerup',stopSplit);localStorage.setItem('northstar-live-split',String(splitRatio.value))}
+function startSplit(event){event.preventDefault();window.addEventListener('pointermove',moveSplit);window.addEventListener('pointerup',stopSplit)}
+function keySplit(event){if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();splitRatio.value=Math.min(72,Math.max(28,splitRatio.value+(event.key==='ArrowRight'?2:-2)));localStorage.setItem('northstar-live-split',String(splitRatio.value))}}
+onUnmounted(stopSplit)
+const selectedDate = ref(store.liveSessions.find(s => s.d === '2025-11-15')?.d || (store.liveSessions[2] ? store.liveSessions[2].d : (store.liveSessions[0] ? store.liveSessions[0].d : '')))
 const selected = computed(() => store.liveSessions.find(s => s.d === selectedDate.value) || store.liveSessions[0])
-const note = computed(() => selected.value ? store.liveNotes[selected.value.d] : null)
+const note = computed(() => selected.value ? (store.liveNotes[selected.value.d] || (manualReview.value ? {script:[{k:'手动复盘原文',v:manualReview.value.text}],source_uri:manualPdfUrl.value,source_page:manualReview.value.page} : null)) : null)
+watch([selected, note], ([session, review]) => { store.liveReviewContext = session ? { session, review } : null }, { immediate: true })
 
 // 让当前 8 场记录也能验证翻页；后续同步更多场次会继续按此大小分页。
 const PAGE_SIZE = 6
-const selectedMonth = ref('')
+const selectedMonth = ref(store.liveSessions.some(s => s.d.startsWith('2025-11')) ? '2025-11' : '')
 const selectedWeek = ref('')
 const page = ref(1)
 // 首屏先展示汇总复盘，逐场明细作为可切换的下钻视图。
@@ -47,7 +60,7 @@ function numberValue(value) {
 function formatNumber(value) { return Math.round(value || 0).toLocaleString('zh-CN') }
 function formatMoney(value) { return '¥' + formatNumber(value) }
 function weekKey(date) {
-  const d = new Date(String(date).replace(' ', 'T'))
+  const d = new Date(String(date).slice(0,10)+'T12:00:00')
   if (Number.isNaN(d.getTime())) return '未知周'
   d.setHours(0, 0, 0, 0)
   d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7))
@@ -93,6 +106,8 @@ watch(selectedWeek, value => {
 const analysisRows = computed(() => analysisMode.value === 'month' ? monthlyRows.value : weeklyRows.value)
 const analysisPeak = computed(() => Math.max(...analysisRows.value.map(row => row.views), 1))
 const analysisTitle = computed(() => analysisMode.value === 'month' ? '按月直播经营分析' : '按周直播经营分析')
+const revenueComparison = computed(() => monthlyRows.value.slice().reverse().map(row => ({label:row.label,gmv:row.gmv,current:row.label===selectedMonth.value})))
+const revenuePeak = computed(() => Math.max(...revenueComparison.value.map(item => item.gmv), 1))
 
 // 视觉抽帧动画
 const visionSteps = ref([])
@@ -113,7 +128,7 @@ function runVision(s) {
     if (i < seq.length) { visionSteps.value.push(seq[i]); i++ }
     else {
       clearInterval(timer); timer = null
-      visionSteps.value.push('已完成 · 已生成峰谷对应证据（演示数据）')
+      visionSteps.value.push('已完成 · 已生成峰谷对应证据（内容数据）')
       visionRunning.value = false
       toast('视觉特征已自动回填')
     }
@@ -143,8 +158,8 @@ const dataCards = computed(() => {
   if (note.value) return note.value.data.cards
   const s = selected.value
   return [
-    { k: '观看人数', v: s.view }, { k: '最高在线', v: s.peak },
-    { k: '总热度', v: s.hot }, { k: '成交金额', v: s.gmv }
+    { k: '观看人数', v: s.view ?? '未记录' }, { k: '最高在线', v: s.peak ?? '未记录' },
+    { k: '总热度', v: s.hot ?? '未记录' }, { k: '成交金额', v: s.gmv ?? '未记录' }
   ]
 })
 const displayedTrend = computed(() => selected.value?.visual?.trend_image || selected.value?.visual?.demoTrendImage || null)
@@ -155,7 +170,7 @@ const displayedTrend = computed(() => selected.value?.visual?.trend_image || sel
     <div class="src-line">
       <span>来源：</span>
       <a :href="LIVE_SUMMARY_DOC" target="_blank" rel="noopener">打开飞书直播复盘文档 ↗</a>
-      <span>· 当前为直播复盘记录</span>
+      <span>· 清华优优直播复盘记录</span>
       <span class="src-tag">视频号</span>
     </div>
 
@@ -181,27 +196,29 @@ const displayedTrend = computed(() => selected.value?.visual?.trend_image || sel
           <option v-for="s in monthSessions" :key="s.d" :value="s.d">{{ s.d }} · {{ s.title }}</option>
         </select>
       </div>
-      <span class="live-count">{{ monthSessions.length }} 场直播</span>
+      <span class="live-count">{{ monthSessions.length }} 条复盘记录</span>
     </div>
 
-    <div class="live-grid">
+    <div ref="liveGrid" class="live-grid" :style="{'--live-left-weight':splitRatio+'fr','--live-right-weight':(100-splitRatio)+'fr'}" :class="{ 'analysis-layout': analysisMode !== 'session' }">
       <div v-if="analysisMode !== 'session'" class="live-left analysis-panel"><section class="live-analysis-card">
       <div class="live-analysis-head">
-        <div><h2>{{ analysisTitle }}</h2><span>基于已同步的 {{ store.liveSessions.length }} 场真实直播数据</span></div>
+        <div><h2>{{ analysisTitle }}</h2><span>来源：视频号直播历史数据.csv · {{ store.liveSessions.length }} 场（含测试场）</span></div>
         <span class="analysis-total">{{ analysisRows.length }} 个{{ analysisMode === 'month' ? '月度' : '自然周' }}周期</span>
       </div>
       <div class="live-analysis-kpis">
-        <div><span>直播场次</span><strong>{{ analysisRows.reduce((sum, row) => sum + row.sessions, 0) }}</strong></div>
-        <div><span>累计观看</span><strong>{{ formatNumber(analysisRows.reduce((sum, row) => sum + row.views, 0)) }}</strong></div>
+        <div><span>报表场次</span><strong>{{ analysisRows.reduce((sum, row) => sum + row.sessions, 0) }}</strong></div>
+        <div><span>累计观看人次</span><strong>{{ formatNumber(analysisRows.reduce((sum, row) => sum + row.views, 0)) }}</strong></div>
         <div><span>最高在线峰值</span><strong>{{ formatNumber(Math.max(...analysisRows.map(row => row.peak), 0)) }}</strong></div>
         <div><span>累计成交</span><strong>{{ formatMoney(analysisRows.reduce((sum, row) => sum + row.gmv, 0)) }}</strong></div>
       </div>
-      <div class="live-trend" aria-label="直播观看趋势">
+      <div class="analysis-section-title"><strong>{{ analysisMode === 'month' ? '按月累计观看人次' : '按周累计观看人次' }}</strong><span>同一观众跨场会重复累计 · 点击周期查看场次</span></div>
+      <div class="live-trend" aria-label="直播观看人数趋势">
         <button v-for="row in analysisRows.slice().reverse()" :key="row.label" class="live-trend-row"
           :class="{ drillable: analysisMode === 'month' }" @click="analysisMode === 'month' && drillIntoMonth(row.label)">
           <span>{{ row.label }}</span><div class="live-trend-bar"><i :style="{ width: (row.views / analysisPeak * 100) + '%' }"></i></div><b>{{ formatNumber(row.views) }}</b>
         </button>
       </div>
+      <div class="month-gmv-compare"><header><span>按月成交金额对比</span><small>单位：元 · CSV 成交金额合计</small></header><div v-for="item in revenueComparison" :key="item.label" :class="{current:item.current}" class="gmv-compare-row"><span>{{item.label}}</span><div><i :style="{width:(item.gmv / revenuePeak * 100)+'%'}"></i></div><b>¥{{formatNumber(item.gmv)}}</b></div></div>
     </section></div>
 
     <div v-else class="live-left">
@@ -233,13 +250,15 @@ const displayedTrend = computed(() => selected.value?.visual?.trend_image || sel
         </div>
       </div>
 
+      <div class="live-column-divider" role="separator" tabindex="0" aria-label="调整直播经营分析与具体复盘宽度" aria-orientation="vertical" :aria-valuenow="Math.round(splitRatio)" aria-valuemin="28" aria-valuemax="72" @pointerdown="startSplit" @keydown="keySplit"><span></span></div>
       <!-- 右侧详情 -->
       <div class="live-right">
         <div class="live-detail-head">
-          <span class="hint">点击左侧任意一场查看完整复盘</span>
+          <span class="hint">选择具体场次查看完整复盘</span>
         </div>
 
         <template v-if="selected">
+
           <!-- 数据 -->
           <div class="detail-block">
             <div class="detail-h"><span class="bar"></span><span>数据</span></div>
@@ -251,6 +270,11 @@ const displayedTrend = computed(() => selected.value?.visual?.trend_image || sel
               </div>
             </div>
             <div v-if="note && note.data.remark" class="detail-remark">{{ note.data.remark }}</div>
+            <div v-if="note?.data.highlight" class="ai-highlight">
+              <span class="ai-highlight-label">AI分析 · 金句高光</span>
+              <strong>“{{ note.data.highlight }}”</strong>
+              <p>{{ note.data.aiAnalysis }}</p>
+            </div>
             <div v-if="selected.visual.shot" class="backend-shot">
               <div class="bs-label">视频号助手 · 后台数据截图（{{ selected.d }}）</div>
               <img :src="selected.visual.shot" alt="视频号助手后台数据">
@@ -262,7 +286,7 @@ const displayedTrend = computed(() => selected.value?.visual?.trend_image || sel
             <div class="detail-h"><span class="bar"></span><span>画面复盘</span>
               <span class="right-tag">对应直播：{{ selected.d }}</span>
             </div>
-            <div class="pic-row">
+            <div v-if="!selected.visual.replay_frames?.length" class="pic-row">
               <img v-if="selected.visual.thumb" class="pic-frame" :src="selected.visual.thumb" alt="该场直播回放画面">
               <div v-else class="replay-pending">
                 <div class="replay-pending-icon">□</div>
@@ -276,20 +300,36 @@ const displayedTrend = computed(() => selected.value?.visual?.trend_image || sel
               </div>
             </div>
 
-            <div v-if="selected.visual.isDemoVisual" class="demo-evidence-note">演示画面：尚未上传该场真实回放截图，不作为复盘证据。</div>
+            <div v-if="selected.visual.isDemoVisual" class="demo-evidence-note">回放画面：尚未上传该场真实回放截图，不作为复盘证据。</div>
 
             <div v-if="displayedTrend" class="replay-trend-proof">
-              <div class="proof-label">{{ selected.visual.trend_image ? '该场直播趋势图 · 视频号后台证据' : '趋势图演示 · 等待真实后台截图' }}</div>
-              <img :src="displayedTrend" alt="该场直播趋势图">
+              <div class="proof-label">{{ selected.visual.trend_image ? '该场直播趋势图 · 视频号后台证据' : '趋势图 · 等待后台截图' }}</div>
+              <LiveTrendChart v-if="selected.d === '2025-11-15'" />
+              <img v-else :src="displayedTrend" alt="该场直播趋势图">
             </div>
             <div v-if="selected.visual.replay_frames?.length" class="replay-frame-grid">
               <div v-for="frame in selected.visual.replay_frames" :key="frame.kind" class="replay-frame">
-                  <span>{{ frame.label || ({ online_peak: '在线峰值', gmv_peak: '成交高峰', audience_drop: '人数下滑' })[frame.kind] || '回放画面' }}</span>
+                  <span>{{ ({ online_peak:'A', gmv_peak:'B', audience_drop:'C' })[frame.kind] }} · {{ (frame.label || '回放画面').replace(/^\d+\s*·\s*/, '') }}</span>
                 <img :src="frame.url" :alt="frame.kind + ' 回放证据'">
+                <div class="node-analysis"><p>话题：{{ frame.topic }}</p><strong v-if="frame.quote">金句：“{{ frame.quote }}”</strong><p><b>AI分析：</b>{{ frame.analysis }}</p></div>
               </div>
             </div>
 
-            <div class="vision-zone">
+            <div v-if="selected.visual.funnel" class="conversion-funnel">
+              <div class="detail-h"><span class="bar"></span><span>转化漏斗</span><span class="right-tag">成交额 {{ selected.gmv }}</span></div>
+              <div class="funnel-grid">
+                <div v-for="funnel in [selected.visual.funnel.flow, selected.visual.funnel.product]" :key="funnel.title" class="funnel-card">
+                  <div class="funnel-card-head"><strong>{{ funnel.title }}</strong><span>整体转化率 {{ funnel.overall }}</span></div>
+                  <div v-for="(step, index) in funnel.steps" :key="step.label" class="funnel-step">
+                    <div class="funnel-step-label"><span>{{ step.label }}</span><b>{{ step.value }}</b></div>
+                    <div class="funnel-bar"><i :style="{ width: Math.max(24, 100 - index * (funnel.steps.length === 5 ? 17 : 22)) + '%' }"></i></div>
+                    <small v-if="step.rate">→ {{ step.rate }}</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="!selected.source_uri" class="vision-zone">
               <div class="vz-h"><span class="dot"></span>回放采集状态</div>
               <div class="vz-row"><span class="vz-note">仅当该场授权后台回放可访问时，才会写入对应画面与语音证据。</span></div>
               <div v-if="visionSteps.length" class="vz-steps show">
@@ -299,21 +339,28 @@ const displayedTrend = computed(() => selected.value?.visual?.trend_image || sel
           </div>
 
           <!-- 脚本复盘 -->
-          <div v-if="note" class="detail-block">
+          <section v-if="manualReview" class="detail-block source-review">
+            <h3>手动复盘 · 原始 PDF</h3>
+            <a :href="manualPdfUrl" target="_blank" rel="noopener">查看手动复盘 PDF · 第 {{ manualReview.page }} 页 ↗</a>
+            <pre style="white-space:pre-wrap;line-height:1.8">{{ manualReview.text }}</pre>
+            <details><summary>展开对应 PDF 页</summary><iframe :src="manualPdfUrl" :title="selected.d+'手动复盘 PDF'" style="width:100%;height:540px;border:1px solid #dce7df;margin-top:12px"></iframe></details>
+          </section>
+          <div v-if="note && !manualReview" class="detail-block">
             <div class="detail-h"><span class="bar"></span><span>脚本直播复盘</span>
-              <a class="review-source-link" :href="LIVE_SUMMARY_DOC" target="_blank" rel="noopener">打开飞书复盘文档 ↗</a>
+              <a v-if="!manualReview" class="review-source-link" :href="LIVE_SUMMARY_DOC" target="_blank" rel="noopener">打开飞书复盘文档 ↗</a>
             </div>
             <ul class="script-ul">
               <li v-for="line in note.script" :key="line.k"><span class="li-k">{{ line.k }}：</span><span>{{ line.v }}</span></li>
             </ul>
           </div>
-          <div v-else class="detail-block detail-empty">
+          <div v-else-if="!manualReview" class="detail-block detail-empty">
             <div class="detail-empty-inner">
               <div class="big">·</div>
               <div class="t">这场还没有手动复盘</div>
               <div class="sub">从视频号复盘回看同步，AI 自动抽取峰谷画面与话术</div>
             </div>
           </div>
+          <section v-if="selected.source_uri" class="detail-block source-review"><h3>原始复盘记录与截图</h3><a v-if="/\.csv(?:$|[?#])/i.test(selected.source_uri)" :href="selected.source_uri" download>下载原始 CSV</a><a v-else :href="selected.source_uri" target="_blank">打开对应复盘页 · 第 {{selected.source_page}} 页 ↗</a><details v-if="/\.pdf(?:$|[?#])/i.test(selected.source_uri)"><summary>展开原始复盘页</summary><iframe :src="selected.source_uri" :title="selected.d+'原始复盘'" style="width:100%;height:540px;border:1px solid #dce7df;margin-top:12px"></iframe></details><details><summary>查看完整文字记录</summary><pre style="white-space:pre-wrap;line-height:1.8">{{selected.source_text}}</pre></details></section>
         </template>
       </div>
     </div>

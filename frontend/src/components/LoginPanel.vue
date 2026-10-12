@@ -11,6 +11,7 @@ const err = ref('')
 const busy = ref(false)
 
 async function submit() {
+  if (busy.value) return
   err.value = ''
   if (!username.value.trim() || !password.value) {
     err.value = '请填写用户名和密码'
@@ -63,7 +64,7 @@ function guest() {
       <button class="auth-btn primary" :disabled="busy" @click="submit">
         {{ busy ? '请稍候…' : (mode === 'login' ? '登录' : '注册并登录') }}
       </button>
-      <button class="auth-btn ghost" @click="guest">以游客身份进入（仅浏览演示数据）</button>
+      <button class="auth-btn ghost" @click="guest">以游客身份进入（仅浏览内容数据）</button>
     </div>
   </div>
 </template>

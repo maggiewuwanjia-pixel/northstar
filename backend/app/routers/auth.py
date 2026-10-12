@@ -2,7 +2,7 @@
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from pydantic import BaseModel
 
 from ..auth import (
@@ -76,7 +76,7 @@ def register(body: RegisterIn):
 def login(body: LoginIn):
     conn = get_conn()
     try:
-        row = conn.execute("SELECT * FROM users WHERE username = ?", (body.username.strip(),)).fetchone()
+        row = conn.execute("SELECT * FROM users WHERE username = ? COLLATE NOCASE", (body.username.strip(),)).fetchone()
         if row is None or not verify_password(body.password, row["password_hash"]):
             raise HTTPException(status_code=401, detail="用户名或密码错误")
         token = create_session(row["id"])
@@ -91,7 +91,7 @@ def me(user=Depends(get_current_user)):
 
 
 @router.post("/logout")
-def logout(authorization: str = ""):
+def logout(authorization: str = Header(default="")):
     token = ""
     if authorization.lower().startswith("bearer "):
         token = authorization[7:].strip()

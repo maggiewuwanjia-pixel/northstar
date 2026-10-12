@@ -20,7 +20,7 @@ const task = computed(() => status.value.history_task || {})
 const evidenceTask = computed(() => status.value.evidence_task || {})
 async function login() { const r = await startQrLogin(); if (!r.started) toast(r.message || '无法启动扫码') }
 async function start() { const r = await syncLiveHistory(); if (!r.started) toast(r.message || '无法启动同步'); else toast('已开始同步直播历史') }
-async function capture() { const r = await captureLiveEvidence(); if (!r.started) toast(r.message || '无法启动逐场采集'); else toast('已开始逐场采集真实回放证据') }
+async function capture() { const r = await captureLiveEvidence(); if (!r.started) toast(r.message || '无法启动逐场采集'); else toast('已开始逐场采集回放证据') }
 </script>
 
 <template>
@@ -33,9 +33,9 @@ async function capture() { const r = await captureLiveEvidence(); if (!r.started
       <div v-if="scanning" class="qr"><img v-if="qrSrc" :src="qrSrc" alt="视频号登录二维码"><span v-else>正在生成二维码…</span><span>请用微信扫一扫完成授权</span></div>
       <div v-if="false" class="sa-step" :class="{done: task.status === '完成'}"><b>2</b><div><strong>同步全部历史直播</strong><span>{{ task.message || '发现每场直播的数据详情链接，并进入队列分析。' }}</span></div><button :disabled="!loggedIn || task.running" @click="start">{{ task.running ? '同步中…' : '开始同步' }}</button></div>
       <div v-if="false && (task.running || task.total)" class="progress"><div><span>{{ task.status || '排队中' }}</span><span>{{ task.done || 0 }} / {{ task.total || '—' }}</span></div><i><em :style="{width: task.total ? Math.round((task.done || 0) / task.total * 100) + '%' : '8%'}"></em></i></div>
-      <div v-if="false" class="sa-step" :class="{done: evidenceTask.status === '完成'}"><b>3</b><div><strong>逐场采集真实回放证据</strong><span>{{ evidenceTask.message || '仅保存该场后台实际可见的播放器画面；没有回放则明确留空。' }}</span></div><button :disabled="!loggedIn || evidenceTask.running" @click="capture">{{ evidenceTask.running ? '采集中…' : '开始采集' }}</button></div>
+      <div v-if="false" class="sa-step" :class="{done: evidenceTask.status === '完成'}"><b>3</b><div><strong>逐场采集回放证据</strong><span>{{ evidenceTask.message || '仅保存该场后台实际可见的播放器画面；没有回放则明确留空。' }}</span></div><button :disabled="!loggedIn || evidenceTask.running" @click="capture">{{ evidenceTask.running ? '采集中…' : '开始采集' }}</button></div>
       <div v-if="false && (evidenceTask.running || evidenceTask.total)" class="progress"><div><span>{{ evidenceTask.status || '排队中' }}</span><span>{{ evidenceTask.done || 0 }} / {{ evidenceTask.total || '—' }}</span></div><i><em :style="{width: evidenceTask.total ? Math.round((evidenceTask.done || 0) / evidenceTask.total * 100) + '%' : '8%'}"></em></i></div>
-      <div class="sa-note"><strong>不会再做的事</strong><span>不会再显示“逐场采集回放”任务，也不会使用演示封面冒充已同步视频。</span></div>
+      <div class="sa-note"><strong>不会再做的事</strong><span>不会再显示“逐场采集回放”任务，也不会使用占位封面冒充已同步视频。</span></div>
     </section>
   </div>
 </template>

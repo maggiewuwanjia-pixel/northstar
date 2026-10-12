@@ -48,9 +48,45 @@ def add_planning_task(body: PlanningTaskIn, user=Depends(get_current_user)):
             "source": "manual", "created_at": datetime.utcnow().isoformat()}
     conn = get_conn()
     try:
+        conn.execute("BEGIN IMMEDIATE")
+        existing = conn.execute("SELECT * FROM planning_tasks WHERE user_id=? AND type=? AND title=? AND planned_at=? AND COALESCE(notes,'')=? LIMIT 1", (uid,task['type'],task['title'],task['planned_at'],task['notes'])).fetchone()
+        if existing:
+            return {"ok": True, "task": dict(existing)}
         conn.execute("INSERT INTO planning_tasks (id,user_id,type,title,planned_at,status,notes,source,created_at) VALUES (?,?,?,?,?,?,?,?,?)",
                      (task["id"], uid, task["type"], task["title"], task["planned_at"], task["status"], task["notes"], task["source"], task["created_at"]))
         conn.commit()
         return {"ok": True, "task": task}
+    finally:
+        conn.close()
+
+
+@router.put("/api/planning-tasks/{task_id}")
+def update_planning_task(task_id: str, body: PlanningTaskIn, user=Depends(get_current_user)):
+    uid = scope_user_id(user)
+    if body.type not in {"live", "video"} or not body.title.strip() or not body.planned_at.strip():
+        raise HTTPException(status_code=400, detail="请填写有效的内容、类型和计划时间")
+    conn = get_conn()
+    try:
+        current = conn.execute('SELECT id,status,source,created_at FROM planning_tasks WHERE id=? AND user_id=?', (task_id, uid)).fetchone()
+        if not current:
+            raise HTTPException(status_code=404, detail="排期任务不存在")
+        task = {"id": task_id, "type": body.type, "title": body.title.strip(), "planned_at": body.planned_at.strip(), "status": current['status'], "notes": body.notes.strip(), "source": current['source'], "created_at": current['created_at']}
+        conn.execute('UPDATE planning_tasks SET type=?,title=?,planned_at=?,notes=? WHERE id=? AND user_id=?', (task['type'], task['title'], task['planned_at'], task['notes'], task_id, uid))
+        conn.commit()
+        return {"ok": True, "task": task}
+    finally:
+        conn.close()
+
+
+@router.delete("/api/planning-tasks/{task_id}")
+def delete_planning_task(task_id: str, user=Depends(get_current_user)):
+    uid = scope_user_id(user)
+    conn = get_conn()
+    try:
+        deleted = conn.execute('DELETE FROM planning_tasks WHERE id=? AND user_id=?', (task_id, uid)).rowcount
+        conn.commit()
+        if not deleted:
+            raise HTTPException(status_code=404, detail="排期任务不存在")
+        return {"ok": True, "id": task_id}
     finally:
         conn.close()

@@ -1,0 +1,688 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NorthStar 产品与技术全景</title><style>*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#eef2f8;color:#27354b;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;font-size:16px;line-height:1.85}.shell{display:grid;grid-template-columns:250px minmax(0,1120px);gap:30px;max-width:1460px;margin:auto;padding:36px 28px}aside{position:sticky;top:25px;height:calc(100vh - 50px);overflow:auto;font-size:12px;padding:18px;background:#f8faff;border:1px solid #dde5f0;border-radius:16px}aside h3{color:#456fbd;font-size:17px}aside a{display:block;color:#59718c;text-decoration:none;margin:8px 0;line-height:1.6}aside a:hover{color:#274f91}main{background:white;border:1px solid #dce5f0;border-radius:20px;padding:48px;min-width:0}h1{font-size:40px;line-height:1.25;color:#1c3559;letter-spacing:-1px;border-bottom:5px solid #456fbd;padding-bottom:26px}h2{font-size:25px;color:#254c82;padding-top:36px;border-top:1px solid #e7edf5;margin-top:48px;scroll-margin-top:20px}h3{font-size:18px;color:#365a88}p{margin:16px 0}strong{color:#243c5c}table{width:100%;border-collapse:collapse;font-size:13px;line-height:1.7;margin:24px 0}thead{background:#edf3fd}th,td{padding:13px 15px;text-align:left;border:1px solid #dfe7f1;vertical-align:top}th{color:#335780}tbody tr:nth-child(even){background:#f8faff}figure{margin:28px -12px;padding:8px;border:1px solid #e0e7f2;border-radius:16px;background:white}figure svg{width:100%;display:block}figcaption{font-size:11px;text-align:center;color:#8595a8;margin:4px 0 8px}code{font-size:12px;overflow-wrap:anywhere;background:#f1f4f9;padding:2px 5px;border-radius:4px}a{color:#426fb5}.top-actions{display:flex;gap:12px;align-items:center;color:#8797aa;font-size:12px}.top-actions button{background:#456fbd;color:white;border:0;border-radius:8px;padding:9px 14px;cursor:pointer}.stamp{font-size:11px;letter-spacing:2px;color:#617ba2;margin-bottom:18px}@media(max-width:1000px){.shell{display:block;padding:14px}aside{position:static;height:auto;margin-bottom:16px}aside a{display:inline-block;margin:6px 8px;font-size:11px}main{padding:26px}h1{font-size:32px}table{display:block;overflow:auto}}@media print{body{background:white}.shell{display:block;padding:0;max-width:none}aside,.top-actions{display:none}main{border:0;padding:0}h1{font-size:29px}h2{break-before:page;margin-top:0}figure,table{break-inside:avoid}figure{margin:16px 0}p,li{orphans:3;widows:3}table{font-size:10px}th,td{padding:7px}a{color:inherit;text-decoration:none}@page{size:A4;margin:16mm}}</style><div class="shell"><aside><h3>NorthStar · 产品全景</h3><p>产品定义 / 架构 / Agent / 数据 / 指标</p><a href="#section-1">01｜产品定义与价值</a><a href="#section-2">02｜产品目标与范围</a><a href="#section-3">03｜核心需求与验收原则</a><a href="#section-4">04｜场景与交付物</a><a href="#section-5">05｜信息架构与页面关系</a><a href="#section-6">06｜前后端技术架构</a><a href="#section-7">07｜Cue Agent 的当前实现</a><a href="#section-8">08｜检索与分析流程</a><a href="#section-9">09｜附件、媒体与知识沉淀</a><a href="#section-10">10｜数据结构与对象关系</a><a href="#section-11">11｜经营指标与计算口径</a><a href="#section-12">12｜北极星与验收指标</a><a href="#section-13">13｜超时、队列与恢复机制</a><a href="#section-14">14｜可视化与内容交付规范</a><a href="#section-15">15｜部署拓扑与交付检查</a><a href="#section-16">16｜现有问题与演进路线</a><a href="#section-17">17｜典型端到端流程：从直播高光到 SOP</a><a href="#section-18">18｜代码导航与证据依据</a><p>18 个章节 · 8 张图<br>2026-10-10</p></aside><main><div class="stamp">NORTHSTAR PRODUCT & SYSTEM LANDSCAPE</div><div class="top-actions"><button onclick="window.print()">打印 / 保存为 PDF</button><span>独立文件 · 无外部资源依赖</span></div><h1>NorthStar 产品与技术全景</h1>
+<p><strong>从经营数据到内容行动的 AI 工作台</strong></p>
+<p>版本：2026-10-10 ｜ 产品：NorthStar / 北极星 ｜ 对话助手：Cue ｜ 生产域名：<a href="https://northstar-copilot.com/">https://northstar-copilot.com/</a></p>
+<p>本文面向产品、设计、工程、运营和业务负责人，依据当前项目源码与本轮部署检查整理。采用「产品定义 → 场景 → 架构 → Agent → 数据 → 指标 → 演进」说明 NorthStar。</p>
+<p><strong>阅读约定</strong>：已实现指当前代码具备该链路；部分实现指只有特定路径可用或仍有演示数据；规划指建议建设，不能视为已经上线。目标指标均为建议验收标准，未经线上测量。</p>
+<h2 id="section-1">01｜产品定义与价值</h2>
+<p>NorthStar 是面向教育内容账号及其运营团队的内容经营 AI 工作台。它把经营报表、直播复盘、课程知识、短视频脚本、竞品内容与生产排期连起来，让用户从「数据发生了什么」走到「下一条拍什么、下一场讲什么、形成什么可复用资产」。Cue 是工作台内的任务入口，页面提供数据和内容上下文，对话输出分析、脚本、方案和后续操作。</p>
+<p>当前核心使用对象为「清华优优」教育内容账号；推广到其他创作者和团队属于产品方向，不应把单账号的演示配置理解为完整的行业 SaaS。</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>经常遇到的问题</th>
+<th>NorthStar 的预期价值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>账号负责人</td>
+<td>看得到指标，但难以转成经营动作</td>
+<td>汇总变化、明确数据边界、形成下一步决策</td>
+</tr>
+<tr>
+<td>内容运营</td>
+<td>选题、复盘、脚本、排期散落在不同工具</td>
+<td>把一个问题串成一条生产流程</td>
+</tr>
+<tr>
+<td>主播 / 老师</td>
+<td>有知识但缺适合短视频和直播的表达</td>
+<td>从课程或复盘资料转成口播、分镜和 SOP</td>
+</tr>
+<tr>
+<td>编导 / 剪辑</td>
+<td>缺少清晰脚本、钩子和交付规范</td>
+<td>获得可编辑的内容草稿和拍摄要求</td>
+</tr>
+<tr>
+<td>数据 / 协作人员</td>
+<td>报表口径不同、资料难追溯</td>
+<td>统一来源、定位原文和核对数值</td>
+</tr>
+</tbody></table>
+<p>业务闭环是：导入资料 → 看经营变化 → 解释与对标 → 生成内容 → 知识沉淀 → 生产排期 → 发布或开播 → 再次复盘。当前平台覆盖其中的工作台、对话和记录环节，不能宣称已经自动发布视频或自动开播。</p>
+<p><figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 510" role="img" aria-label="业务闭环：从看数据到做内容"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10" fill="#7994c5"/></marker></defs><rect width="1120" height="510" rx="18" fill="white"/><g font-family="PingFang SC,Microsoft YaHei,Noto Sans CJK SC,sans-serif"><text x="34" y="38" font-size="23" font-weight="700" fill="#20324b">业务闭环：从看数据到做内容</text><text x="34" y="65" font-size="13" fill="#72839b">当前覆盖工作台与内容记录；发布和效果回传需另行验证</text><rect x="34" y="112" width="232" height="110" rx="12" fill="#456fbd" stroke="#456fbd"/><text x="150.0" y="161.0" text-anchor="middle" fill="white" font-size="17" font-weight="650">导入与核验</text><text x="150.0" y="185.0" text-anchor="middle" fill="white" font-size="13" font-weight="400">报表 / 课程 / 内容</text><rect x="308" y="112" width="232" height="110" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="424.0" y="161.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">经营看板</text><text x="424.0" y="185.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">指标变化 / 月度汇总</text><rect x="582" y="112" width="232" height="110" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="698.0" y="161.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">分析与对标</text><text x="698.0" y="185.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">本场 / 上场 / 竞品</text><rect x="856" y="112" width="232" height="110" rx="12" fill="#456fbd" stroke="#456fbd"/><text x="972.0" y="161.0" text-anchor="middle" fill="white" font-size="17" font-weight="650">生成内容</text><text x="972.0" y="185.0" text-anchor="middle" fill="white" font-size="13" font-weight="400">脚本 / 文档 / SOP</text><rect x="856" y="302" width="232" height="110" rx="12" fill="#456fbd" stroke="#456fbd"/><text x="972.0" y="351.0" text-anchor="middle" fill="white" font-size="17" font-weight="650">知识沉淀</text><text x="972.0" y="375.0" text-anchor="middle" fill="white" font-size="13" font-weight="400">来源绑定 / 可再次引用</text><rect x="582" y="302" width="232" height="110" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="698.0" y="351.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">生产排期</text><text x="698.0" y="375.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">编辑任务 / 日期安排</text><rect x="308" y="302" width="232" height="110" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="424.0" y="351.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">发布与开播</text><text x="424.0" y="375.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">用户执行 · 结果待回传</text><rect x="34" y="302" width="232" height="110" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="150.0" y="351.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">再次复盘</text><text x="150.0" y="375.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">保留有效方法 / 调整</text><path d="M266,167 L308,167" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M540,167 L582,167" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M814,167 L856,167" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M972,222 L972,302" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M856,357 L814,357" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M582,357 L540,357" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M308,357 L266,357" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><text x="34" y="490" font-size="11" fill="#8a97a9">NORTHSTAR / CUE · 2026-10-10 · 实现状态详见正文</text></g></svg><figcaption>业务闭环</figcaption></figure></p>
+<h2 id="section-2">02｜产品目标与范围</h2>
+<p><strong>目标一：可信。</strong> 回答中的数值来自指定报表或查询结果，区分真实导入、演示数据、截图估值和 AI 建议。找不到原文就明确缺失，不使用其他月份代替。</p>
+<p><strong>目标二：可行动。</strong> 不停留在泛泛建议。脚本输出应包括钩子、正文、口播、镜头和 CTA；SOP 输出应包括适用场景、步骤、检查点和复盘方法。</p>
+<p><strong>目标三：可沉淀。</strong> 生成结果可复制、分享、保存到知识库或加入排期。下一次分析可以重新引用已保存资料。</p>
+<p><strong>目标四：不断流。</strong> 问题提交后立即成为用户消息；回答生成中支持追加问题进入待发送队列。超限提供继续操作，避免输入框长时间锁死。</p>
+<table>
+<thead>
+<tr>
+<th>本阶段范围</th>
+<th>状态与边界</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>经营看板、直播数据、脚本库、知识库、竞品对比、内容排期</td>
+<td>已有页面和操作链路；部分模块仍使用示例资料</td>
+</tr>
+<tr>
+<td>五类任务路由、GLM 文本问答、MiniMax 图片/视频关键帧理解</td>
+<td>已接入；上下文、检索与失败恢复仍需持续测试</td>
+</tr>
+<tr>
+<td>文档、表格和媒体附件解析</td>
+<td>已有多格式路径；前端附件与登录知识库上传限制不同</td>
+</tr>
+<tr>
+<td>会话、回答操作、待发送队列</td>
+<td>已有交互；访客记录属于本机浏览器存储</td>
+</tr>
+<tr>
+<td>向量检索、自动工具选择、多子 Agent、统计沙箱</td>
+<td>尚未实现完整生产链路</td>
+</tr>
+<tr>
+<td>定时无人值守执行、平台自动发布、账号级全量自动同步</td>
+<td>不能作为已完成能力承诺</td>
+</tr>
+</tbody></table>
+<h2 id="section-3">03｜核心需求与验收原则</h2>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>需求</th>
+<th>验收要点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>P0</td>
+<td>本轮问题决定任务类型</td>
+<td>改变问法仍能路由；不能把「直播多久」回答成内容总结</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>上下文准确绑定</td>
+<td>当前脚本正文、当前直播、@资料及附件在发送时固定下来</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>时间和数值正确</td>
+<td>月度统计覆盖全月场次；历史 / 当前 / 后续按实际日期判断</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>回答可读且有来源</td>
+<td>Markdown 标题、加粗、表格正常渲染；来源标题与摘要限制高度</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>失败可解释、可恢复</td>
+<td>区分模型连接、超时、输出截断、解析失败；保存问题和资料</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>内容沉淀与下一步</td>
+<td>文档 / 方案 / SOP / 脚本提供保存或排期入口</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>会话与队列</td>
+<td>新建、历史恢复、连续提问、取消排队条目，不覆盖新草稿</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>内容生产编辑</td>
+<td>编辑项保留颜色，其他变灰；卡片身份不因重绘丢失</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>附件易用</td>
+<td>拖拽或左下角＋；区分图片 / 文件；限制说明与错误可见</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>持久任务与评测</td>
+<td>后台作业恢复、路由和取数评测、团队权限、通知和审计</td>
+</tr>
+</tbody></table>
+<p>统一回答规范包含：可折叠过程摘要、使用资料来源、可读正文、操作工具栏，以及适用时的产物与下一步。<strong>「思考过程」应展示可核验的执行摘要，而不是模型隐藏推理。</strong> 当前部分步骤标签由程序生成，不等于逐步工具调用日志，后续需要绑定实际执行事件、耗时和失败原因。</p>
+<h2 id="section-4">04｜场景与交付物</h2>
+<table>
+<thead>
+<tr>
+<th>用户问题</th>
+<th>主要任务</th>
+<th>应使用的资料</th>
+<th>交付物 / 下一步</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>本场直播内容总结？</td>
+<td>分析</td>
+<td>当前场次、内容记录、关键画面</td>
+<td>内容结构、亮点、风险、来源</td>
+</tr>
+<tr>
+<td>和上一场数据对比，总结一下</td>
+<td>分析 / 下钻</td>
+<td>两场同口径报表、时长、主题</td>
+<td>对比表、差值、增长率和待验证原因</td>
+</tr>
+<tr>
+<td>本场直播时长多久？</td>
+<td>指标查询</td>
+<td>当前场次的原始时长字段</td>
+<td>一句直接回答与报表来源</td>
+</tr>
+<tr>
+<td>为什么 2025 年 7 月销售额高？</td>
+<td>下钻</td>
+<td>全月所有场次、成交额和观看数据</td>
+<td>总额、头部场次贡献、可验证假设</td>
+</tr>
+<tr>
+<td>课程 PPT 哪些内容能用于直播？</td>
+<td>拆解 / 创意</td>
+<td>PPT 页级原文、直播 SOP</td>
+<td>可用知识点、直播结构、口播草稿</td>
+</tr>
+<tr>
+<td>优化当前脚本</td>
+<td>创意</td>
+<td>当前脚本完整正文</td>
+<td>优化稿、理由、口播和分镜</td>
+</tr>
+<tr>
+<td>视频拆成脚本</td>
+<td>拆解</td>
+<td>上传视频的抽样帧、已有字幕</td>
+<td>时点分镜、画面分析、建议话术</td>
+</tr>
+<tr>
+<td>人气高点、下单高点的话术沉淀为 SOP</td>
+<td>创意</td>
+<td>高光节点、话术、关联指标</td>
+<td>SOP 文档 → 知识库 → 下次复用</td>
+</tr>
+<tr>
+<td>查看 AI 详细竞品分析</td>
+<td>分析 / 拆解</td>
+<td>当前竞品对比资料</td>
+<td>差异化机会、选题建议 → 保存 / 排期</td>
+</tr>
+<tr>
+<td>把刚生成的脚本加入下周排期</td>
+<td>排期</td>
+<td>最近产物、明确日期、内容类型</td>
+<td>可编辑生产任务及保存结果</td>
+</tr>
+</tbody></table>
+<p>复合问题可以包含多个输出，但必须围绕本轮问题组织。对话历史用于理解「这个」「刚才」等指代，不应把旧问题未经要求重复合并进答案。</p>
+<h2 id="section-5">05｜信息架构与页面关系</h2>
+<p>经营看板负责经营概览和下一步建议；直播复盘负责单场和历史表现；短视频脚本与直播脚本负责内容产物；知识库负责资料和知识资产；对标账号及竞品对比负责外部内容参考；内容排期负责执行安排。Cue 跨页面提供统一任务入口。</p>
+<p>知识库按知识空间组织资料，存在课程、脚本、经营数据等子库视图。空间中的文档、概念与来源是不同对象：文档是内容载体，概念是解析后的知识组织结果，来源记录文件或接入渠道。概念关系图目前主要根据文档 AI 解析结果构建，不是通用图数据库。</p>
+<p>排期以四周为一个展示窗口，分为短视频选题、短视频脚本、拍摄发布、直播选题脚本、直播开播五条生产线。历史计划和后续计划需要绝对日期约束；本轮补充的任务属于用户授权编排的计划草案，不是已经完成的业务事实。</p>
+<h2 id="section-6">06｜前后端技术架构</h2>
+<p><figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 550" role="img" aria-label="前后端与数据架构"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10" fill="#7994c5"/></marker></defs><rect width="1120" height="550" rx="18" fill="white"/><g font-family="PingFang SC,Microsoft YaHei,Noto Sans CJK SC,sans-serif"><text x="34" y="38" font-size="23" font-weight="700" fill="#20324b">前后端与数据架构</text><text x="34" y="65" font-size="13" fill="#72839b">当前为单体 API + 静态数据 + 浏览器状态；未引入独立 Agent 微服务</text><rect x="34" y="100" width="205" height="78" rx="12" fill="#456fbd" stroke="#456fbd"/><text x="136.5" y="145.0" text-anchor="middle" fill="white" font-size="17" font-weight="650">用户工作台</text><rect x="272" y="100" width="540" height="78" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="542.0" y="145.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">经营看板 / 知识库 / 复盘 / 脚本 / 排期</text><rect x="845" y="100" width="241" height="78" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="965.5" y="145.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">Vue 3 · Cue 对话</text><path d="M540,178 L540,200" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="34" y="200" width="205" height="78" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="136.5" y="245.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">同域服务入口</text><rect x="272" y="200" width="540" height="78" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="542.0" y="245.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">HTTPS / 静态托管 / API / 媒体转换</text><rect x="845" y="200" width="241" height="78" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="965.5" y="245.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">Nginx → FastAPI</text><path d="M540,278 L540,300" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="34" y="300" width="205" height="78" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="136.5" y="345.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">任务与能力层</text><rect x="272" y="300" width="540" height="78" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="542.0" y="345.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">路由 / 计算 / 检索 / 生成 / 保存</text><rect x="845" y="300" width="241" height="78" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="965.5" y="333.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">GLM · MiniMax · 业务</text><text x="965.5" y="357.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">函数</text><path d="M540,378 L540,400" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="34" y="400" width="205" height="78" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="136.5" y="445.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">数据与文件层</text><rect x="272" y="400" width="540" height="78" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="542.0" y="445.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">SQLite / CSV / manifest / 原文件</text><rect x="845" y="400" width="241" height="78" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="965.5" y="433.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">浏览器 localStorage / I</text><text x="965.5" y="457.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">ndexedDB</text><text x="34" y="530" font-size="11" fill="#8a97a9">NORTHSTAR / CUE · 2026-10-10 · 实现状态详见正文</text></g></svg><figcaption>技术架构</figcaption></figure></p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>当前实现</th>
+<th>主要职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>前端应用</td>
+<td>Vue 3、Vite、共享 store</td>
+<td>页面、会话、附件、排期和当前页面上下文</td>
+</tr>
+<tr>
+<td>内容渲染</td>
+<td>marked、DOMPurify、lucide-vue-next、SVG</td>
+<td>Markdown、清理不安全 HTML、图标与趋势图</td>
+</tr>
+<tr>
+<td>浏览器存储</td>
+<td>localStorage、IndexedDB</td>
+<td>访客会话、草稿、排期与本地原文件</td>
+</tr>
+<tr>
+<td>应用 API</td>
+<td>FastAPI、Pydantic、httpx</td>
+<td>鉴权、知识库、数据接口、Cue、媒体解析</td>
+</tr>
+<tr>
+<td>主业务存储</td>
+<td>SQLite northstar.db</td>
+<td>账号、业务记录、知识空间、消息与产物</td>
+</tr>
+<tr>
+<td>数据补充</td>
+<td>CSV 原件、JSON manifest、liveHistory.json、business.sqlite</td>
+<td>导入报表、演示资料及结构化查询</td>
+</tr>
+<tr>
+<td>模型接入</td>
+<td>TokenHub 兼容 chat/completions</td>
+<td>GLM 文字任务，MiniMax 多模态任务</td>
+</tr>
+<tr>
+<td>媒体解析</td>
+<td>本地 Swift / OCR；线上 ffmpeg / LibreOffice</td>
+<td>视频抽帧、PPT / 旧版 Office 转 PDF</td>
+</tr>
+<tr>
+<td>部署</td>
+<td>腾讯云 Ubuntu、Nginx、systemd、HTTPS</td>
+<td>静态页面、API 代理、证书和后端进程</td>
+</tr>
+</tbody></table>
+<p>前端通过同域 <code>/api</code> 调用业务接口，生产环境由 Nginx 转发至本机 FastAPI。<code>/local-media</code> 在本地由 Vite 中间件提供，在生产由新媒体路由提供；两条路径要分别验证，不能仅凭本地可用断言线上可用。</p>
+<p>当前没有独立的 Agent 微服务、向量数据库或消息队列。SQLite 和静态数据适合当前验证阶段，但任务规模、账号数量和资料量增长后，应拆出对象存储、后台解析任务与可扩展的检索服务。</p>
+<h2 id="section-7">07｜Cue Agent 的当前实现</h2>
+<p>Cue 当前是受程序约束的任务编排层：前端提交问题和上下文，后端选择任务路由、检索资料、调用模型、返回回答和产物。业务函数负责具体操作，模型不拥有任意执行权限。</p>
+<p><figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 558" role="img" aria-label="Cue 当前任务流水线"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10" fill="#7994c5"/></marker></defs><rect width="1120" height="558" rx="18" fill="white"/><g font-family="PingFang SC,Microsoft YaHei,Noto Sans CJK SC,sans-serif"><text x="34" y="38" font-size="23" font-weight="700" fill="#20324b">Cue 当前任务流水线</text><text x="34" y="65" font-size="13" fill="#72839b">确定性程序约束模型；意图分类与回答分别请求；部分标准问题走本地分支</text><rect x="34" y="108" width="308" height="102" rx="12" fill="#456fbd" stroke="#456fbd"/><text x="188.0" y="153.0" text-anchor="middle" fill="white" font-size="17" font-weight="650">提交问题</text><text x="188.0" y="177.0" text-anchor="middle" fill="white" font-size="13" font-weight="400">绿色消息 / 附件固定</text><path d="M342,159 L406,159" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="406" y="108" width="308" height="102" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="560.0" y="153.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">意图识别</text><text x="560.0" y="177.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">GLM JSON → 五种模式</text><path d="M714,159 L778,159" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="778" y="108" width="308" height="102" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="932.0" y="153.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">规则兜底</text><text x="932.0" y="177.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">失败时重新按问题判断</text><path d="M932,210 L932,256" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="778" y="256" width="308" height="102" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="932.0" y="301.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">资料范围</text><text x="932.0" y="325.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">页面上下文 + @引用</text><path d="M778,307 L714,307" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="406" y="256" width="308" height="102" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="560.0" y="301.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">检索与计算</text><text x="560.0" y="325.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">片段召回 / 完整月汇总</text><path d="M406,307 L342,307" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="34" y="256" width="308" height="102" rx="12" fill="#456fbd" stroke="#456fbd"/><text x="188.0" y="301.0" text-anchor="middle" fill="white" font-size="17" font-weight="650">模型生成</text><text x="188.0" y="325.0" text-anchor="middle" fill="white" font-size="13" font-weight="400">GLM 文字 / MiniMax 图片</text><path d="M188,358 L188,404" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="34" y="404" width="308" height="102" rx="12" fill="#456fbd" stroke="#456fbd"/><text x="188.0" y="449.0" text-anchor="middle" fill="white" font-size="17" font-weight="650">答案呈现</text><text x="188.0" y="473.0" text-anchor="middle" fill="white" font-size="13" font-weight="400">正文 / 来源 / 过程摘要</text><path d="M342,455 L406,455" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="406" y="404" width="308" height="102" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="560.0" y="449.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">产物操作</text><text x="560.0" y="473.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">知识库 / 排期 / 分享</text><path d="M714,455 L778,455" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="778" y="404" width="308" height="102" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="932.0" y="449.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">追加任务</text><text x="932.0" y="473.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">waitlist → 顺序发送</text><text x="34" y="538" font-size="11" fill="#8a97a9">NORTHSTAR / CUE · 2026-10-10 · 实现状态详见正文</text></g></svg><figcaption>当前任务流水线</figcaption></figure></p>
+<h3>五种用户任务与内部路由</h3>
+<table>
+<thead>
+<tr>
+<th>UI 类型</th>
+<th>语义</th>
+<th>内部路由示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>分析</td>
+<td>概览、对比、原因解释、经营判断</td>
+<td>structured_query、hybrid_analysis、knowledge_qa</td>
+</tr>
+<tr>
+<td>下钻</td>
+<td>按时间、场次、维度查看明细</td>
+<td>metric_drilldown、source_lookup</td>
+</tr>
+<tr>
+<td>拆解</td>
+<td>内容结构、钩子、话术与竞品表达</td>
+<td>content_breakdown、competitor_rewrite</td>
+</tr>
+<tr>
+<td>创意</td>
+<td>脚本、文档、方案、SOP</td>
+<td>creative_generation</td>
+</tr>
+<tr>
+<td>排期</td>
+<td>将内容建议转成生产安排</td>
+<td>hybrid_planning；前端请求中部分路径映射为 creative</td>
+</tr>
+</tbody></table>
+<p>前端先请求 <code>/api/cue/intent</code>。GLM 输出五种模式之一；失败时通过关键词规则兜底。后端再用 <code>cue_routing.py</code> 判断具体路由。该方案不是新增的小模型，也不是已训练的专用意图分类器。</p>
+<p><strong>上下文内容</strong>：当前短视频脚本、当前直播脚本、当前直播复盘、当前竞品对比、@引用文档、近期直播、账号 KPI、已有排期、历史对话和上传图片。待发送队列会保留提交时的资料快照，避免页面切换改变排队任务的证据范围。</p>
+<p><strong>模型分工</strong>：默认文字任务使用 <code>glm-5.2</code>；包含图片等多模态消息时使用 <code>minimax-m3</code>。模型名来自服务端配置，不在前端放置 API 密钥。此分工表示调用选择，不等于已验证模型具备完整视频音频理解能力。</p>
+<h3>控制规则与能力模块</h3>
+<p><figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 552" role="img" aria-label="规则、能力与输出的模块关系"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10" fill="#7994c5"/></marker></defs><rect width="1120" height="552" rx="18" fill="white"/><g font-family="PingFang SC,Microsoft YaHei,Noto Sans CJK SC,sans-serif"><text x="34" y="38" font-size="23" font-weight="700" fill="#20324b">规则、能力与输出的模块关系</text><text x="34" y="65" font-size="13" fill="#72839b">当前由规则、业务能力和输出操作组成；采用程序化任务编排</text><rect x="34" y="220" width="208" height="100" rx="12" fill="#456fbd" stroke="#456fbd"/><text x="138.0" y="264.0" text-anchor="middle" fill="white" font-size="17" font-weight="650">Cue 编排层</text><text x="138.0" y="288.0" text-anchor="middle" fill="white" font-size="13" font-weight="400">当前是程序化工作流</text><rect x="320" y="105" width="330" height="108" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="485.0" y="141.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">规则与规范</text><text x="485.0" y="165.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">SYSTEM_PROMPT</text><text x="485.0" y="189.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">路由约定 / UI 公约</text><rect x="710" y="105" width="376" height="108" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="898.0" y="165.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">回答当前问题 / 不编造 / 来源编号</text><path d="M242,270 H278 V159 H320" fill="none" stroke="#7994c5" stroke-width="2"/><path d="M650,159 L710,159" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="320" y="245" width="330" height="108" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="485.0" y="281.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">按需业务能力</text><text x="485.0" y="305.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">routers + services</text><text x="485.0" y="329.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">前端解析与保存操作</text><rect x="710" y="245" width="376" height="108" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="898.0" y="305.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">经营计算 / 知识检索 / 内容生成</text><path d="M242,270 H278 V299 H320" fill="none" stroke="#7994c5" stroke-width="2"/><path d="M650,299 L710,299" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="320" y="385" width="330" height="108" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="485.0" y="421.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">结果与行动</text><text x="485.0" y="445.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">answer / sources / steps</text><text x="485.0" y="469.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">artifacts / planning</text><rect x="710" y="385" width="376" height="108" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="898.0" y="445.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">Markdown / 图表 / 保存 / 排期</text><path d="M242,270 H278 V439 H320" fill="none" stroke="#7994c5" stroke-width="2"/><path d="M650,439 L710,439" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><text x="34" y="532" font-size="11" fill="#8a97a9">NORTHSTAR / CUE · 2026-10-10 · 实现状态详见正文</text></g></svg><figcaption>控制规则与能力模块</figcaption></figure></p>
+<p>当前「规则层」位于 <code>SYSTEM_PROMPT</code>、路由规则和 <code>AI-UI-CONVENTIONS.md</code>。职责包括：回答当前问题、资料只作证据、不得编造指标、来源编号、Markdown 输出和受限图表格式。当前「能力层」由后端 services、routers 和前端解析函数实现。</p>
+<p>后续可以把规则与业务能力整理成独立模块，按任务加载。当前仓库没有运行时动态能力加载器，设计分层与实际文件结构应分别说明。</p>
+<h2 id="section-8">08｜检索与分析流程</h2>
+<p><strong>访客路径</strong>读取静态资料 manifest，按文本片段与标题命中排序，最多选取若干候选片段。最近补充的指定月份查询会读取全量直播 JSON，计算当月成交总额、观看人次、场次数与头部场次。该确定性计算修复了「只搜到六个片段，误认为整月只有这些数据」的问题。</p>
+<p><strong>登录路径</strong>按 <code>user_id</code> 查询知识库，支持空间和指定文档范围。文档分块默认约 800 字、重叠约 100 字；检索以英文词和中文二元字词的覆盖度排序，默认召回最多 8 个片段。当前不是向量 RAG，也没有成熟的混合检索和重排模型。</p>
+<p><strong>分析边界</strong>：当月汇总、同比或环比差值可以确定性计算；「为什么销售高」需要话题、商品、流量来源、时长等证据。头部场次贡献能说明总额由哪些场次构成，不能独自证明某句话造成成交增长。</p>
+<p>建议后续统一为：问题 / 实体 / 时间解析 → 数据源计划 → 指标计算或资料检索 → 覆盖度检查 → 答案草稿 → 数值与引用校验 → 可视化 → 产物操作。访客和登录路径应共享同一套计算与证据接口，避免功能分叉。</p>
+<h2 id="section-9">09｜附件、媒体与知识沉淀</h2>
+<p><figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 510" role="img" aria-label="资料 → 可引用知识 → 内容资产"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10" fill="#7994c5"/></marker></defs><rect width="1120" height="510" rx="18" fill="white"/><g font-family="PingFang SC,Microsoft YaHei,Noto Sans CJK SC,sans-serif"><text x="34" y="38" font-size="23" font-weight="700" fill="#20324b">资料 → 可引用知识 → 内容资产</text><text x="34" y="65" font-size="13" fill="#72839b">上传到对话不等于长期入库；视频脚本中的建议话术需明确标注</text><rect x="34" y="158" width="188" height="155" rx="12" fill="#456fbd" stroke="#456fbd"/><text x="128.0" y="217.5" text-anchor="middle" fill="white" font-size="17" font-weight="650">文件接收</text><text x="128.0" y="241.5" text-anchor="middle" fill="white" font-size="13" font-weight="400">图片20张 / 文件20个</text><text x="128.0" y="265.5" text-anchor="middle" fill="white" font-size="13" font-weight="400">对话与知识库限制不同</text><path d="M222,235 L250,235" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="250" y="158" width="188" height="155" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="344.0" y="217.5" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">解析与定位</text><text x="344.0" y="241.5" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">PPT页 / CSV行 / PDF页</text><text x="344.0" y="265.5" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">视频关键帧 / 无音频转写</text><path d="M438,235 L466,235" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="466" y="158" width="188" height="155" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="560.0" y="205.5" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">知识组织</text><text x="560.0" y="229.5" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">空间 → 来源 → 文档 →</text><text x="560.0" y="253.5" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400"> 片段</text><text x="560.0" y="277.5" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">摘要 / 目录 / 概念关系</text><path d="M654,235 L682,235" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="682" y="158" width="188" height="155" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="776.0" y="217.5" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">问答召回</text><text x="776.0" y="241.5" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">问题关键词 + 文档边界</text><text x="776.0" y="265.5" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">当前不是向量检索</text><path d="M870,235 L898,235" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="898" y="158" width="188" height="155" rx="12" fill="#456fbd" stroke="#456fbd"/><text x="992.0" y="217.5" text-anchor="middle" fill="white" font-size="17" font-weight="650">内容沉淀</text><text x="992.0" y="241.5" text-anchor="middle" fill="white" font-size="13" font-weight="400">脚本 / 方案 / SOP</text><text x="992.0" y="265.5" text-anchor="middle" fill="white" font-size="13" font-weight="400">用户确认加入知识库</text><rect x="250" y="362" width="620" height="78" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="560.0" y="395.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">原件、事实、建议分开保存</text><text x="560.0" y="419.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">每个结论保留来源 / locator / 时间口径</text><text x="34" y="490" font-size="11" fill="#8a97a9">NORTHSTAR / CUE · 2026-10-10 · 实现状态详见正文</text></g></svg><figcaption>资料到知识资产</figcaption></figure></p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>当前处理方式</th>
+<th>实际限制与边界</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>图片</td>
+<td>压缩为 JPEG 后交给 MiniMax</td>
+<td>输入最多 20 张，原图每张 ≤20 MB；最长边缩至约 1600 像素，不是原图逐像素传输</td>
+</tr>
+<tr>
+<td>对话文件</td>
+<td>XLSX、PPTX、CSV、TSV、MD、TXT、PDF、DOCX 等解析</td>
+<td>最多 20 个，每个 ≤500 MB；格式接收与正文可解析是两项不同保证</td>
+</tr>
+<tr>
+<td>旧版 PPT / XLS</td>
+<td>通过 LibreOffice 转 PDF 后提取</td>
+<td>需要服务端转换工具；不同文件仍可能解析失败</td>
+</tr>
+<tr>
+<td>登录知识库上传</td>
+<td>服务端读取与分块</td>
+<td>当前 <code>MAX_BYTES</code> 为 50 MB，正文上限约 20 万字符；与对话附件上限不同</td>
+</tr>
+<tr>
+<td>视频知识资料</td>
+<td>保存原片，抽样最多 8 帧，再调用 MiniMax</td>
+<td>视频路径当前上限 200 MB；没有音频逐字转写</td>
+</tr>
+<tr>
+<td>原始 PPT 预览</td>
+<td>生成 PDF 后在页面内预览</td>
+<td>保留幻灯片版式；不能等同于浏览器原生编辑 PPT</td>
+</tr>
+<tr>
+<td>表格预览</td>
+<td>按工作表渲染网格</td>
+<td>展示解析值，不是完整 Excel 公式计算引擎</td>
+</tr>
+</tbody></table>
+<p>本地视频流程还有画面 OCR；线上新流程使用 ffmpeg 抽帧。两者均不能自动把未转写音频当成真实口播。应分别标注画面证据、抽样时间点、建议话术和缺失信息。</p>
+<p>「上传」「解析」「加入知识库」也需要区分：临时对话附件会用于回答，不代表已经形成长期知识资产。加入知识库才是明确的保存动作。访客原文件保存在浏览器 IndexedDB 或由静态资料提供，不等于已同步到其他设备。</p>
+<p>当前对话资料存在长度截取和总上下文限制，20 个大文件的接收不等于全文同时进入模型。后续应采用逐文件异步解析、摘要索引、针对问题召回和可见的覆盖度提示，避免静默截断。</p>
+<h2 id="section-10">10｜数据结构与对象关系</h2>
+<p><figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 570" role="img" aria-label="核心对象关系（逻辑视图）"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10" fill="#7994c5"/></marker></defs><rect width="1120" height="570" rx="18" fill="white"/><g font-family="PingFang SC,Microsoft YaHei,Noto Sans CJK SC,sans-serif"><text x="34" y="38" font-size="23" font-weight="700" fill="#20324b">核心对象关系（逻辑视图）</text><text x="34" y="65" font-size="13" fill="#72839b">主数据库与浏览器本地对象并存；稳定账号 / 场次 ID 和产物血缘仍需统一</text><rect x="34" y="112" width="230" height="100" rx="12" fill="#456fbd" stroke="#456fbd"/><text x="149.0" y="156.0" text-anchor="middle" fill="white" font-size="17" font-weight="650">用户 user</text><text x="149.0" y="180.0" text-anchor="middle" fill="white" font-size="13" font-weight="400">user_id</text><rect x="335" y="112" width="350" height="100" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="510.0" y="156.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">知识空间 space</text><text x="510.0" y="180.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">拥有者 / 成员 / 权限记录</text><rect x="756" y="112" width="330" height="100" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="921.0" y="156.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">来源 source</text><text x="921.0" y="180.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">文件 / 渠道 / 解析任务</text><path d="M264,162 L335,162" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M685,162 L756,162" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="335" y="276" width="350" height="100" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="510.0" y="320.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">文档 → 片段</text><text x="510.0" y="344.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">document_id → chunk_id / locator</text><rect x="756" y="276" width="330" height="100" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="921.0" y="320.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">会话 → 消息</text><text x="921.0" y="344.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">conversation_id / sources / steps</text><rect x="34" y="276" width="230" height="100" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="149.0" y="320.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">经营与直播</text><text x="149.0" y="344.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">账号 / 日期 / 场次</text><path d="M510,212 L510,276" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M921,212 L510,276" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M685,326 L756,326" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M264,326 L756,326" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="335" y="432" width="350" height="90" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="510.0" y="471.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">产物 artifact</text><text x="510.0" y="495.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">草稿 / 文档 / 脚本 / SOP</text><rect x="756" y="432" width="330" height="90" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="921.0" y="471.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">生产排期 task</text><text x="921.0" y="495.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">日期 / 类型 / 备注 / 状态</text><path d="M921,376 L510,432" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M685,477 L756,477" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><text x="34" y="550" font-size="11" fill="#8a97a9">NORTHSTAR / CUE · 2026-10-10 · 实现状态详见正文</text></g></svg><figcaption>对象关系</figcaption></figure></p>
+<table>
+<thead>
+<tr>
+<th>对象组</th>
+<th>表 / 结构</th>
+<th>关键字段与关系</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>用户与身份</td>
+<td>users、sessions</td>
+<td>user_id、用户名、密码哈希、会话令牌和到期时间</td>
+</tr>
+<tr>
+<td>账号经营</td>
+<td>kpis、northstar、trend、portraits 等</td>
+<td>当前为业务展示表，部分字段来自种子数据</td>
+</tr>
+<tr>
+<td>直播</td>
+<td>live_sessions、live_notes、live_scripts；liveHistory.json</td>
+<td>日期、标题、时长、观看、峰值、成交、内容卡片与原件定位</td>
+</tr>
+<tr>
+<td>内容</td>
+<td>scripts、videos、library、benchmarks、virals</td>
+<td>脚本、视频、资料、竞品与内容表现</td>
+</tr>
+<tr>
+<td>排期</td>
+<td>planning_tasks、gantt、gantt_weeks</td>
+<td>类型、标题、planned_at、状态、备注；图形窗口是展示投影</td>
+</tr>
+<tr>
+<td>知识空间</td>
+<td>knowledge_spaces、knowledge_space_members</td>
+<td>空间所有者、成员与角色记录</td>
+</tr>
+<tr>
+<td>数据来源</td>
+<td>knowledge_sources、knowledge_sync_jobs</td>
+<td>来源类型、URI、解析阶段、进度、错误和文档数量</td>
+</tr>
+<tr>
+<td>知识内容</td>
+<td>knowledge_documents、knowledge_chunks</td>
+<td>文档归属空间，片段关联文档并保留 locator</td>
+</tr>
+<tr>
+<td>AI 会话</td>
+<td>cue_conversations、cue_messages</td>
+<td>用户、模式、消息正文、路由、来源、步骤和产物</td>
+</tr>
+<tr>
+<td>AI 任务与产物</td>
+<td>cue_tasks、cue_artifacts</td>
+<td>周期任务定义；产物内容、类型和来源</td>
+</tr>
+<tr>
+<td>访客状态</td>
+<td>localStorage、IndexedDB</td>
+<td>本机聊天、反馈、排期、模板编辑与上传原文件</td>
+</tr>
+</tbody></table>
+<p>注意：旧 <code>live_sessions</code> 与 <code>live_notes</code> 用日期作主键，多场同一天的直播无法仅凭日期唯一识别；前端部分选场也依赖日期。应迁移为稳定的 <code>live_id</code>，日期和开始时间作为属性。模板卡片与真实排期应同样使用稳定 ID，不能用对象引用判断是否正在编辑。</p>
+<p>建议新增或统一字段：<code>account_id</code>、<code>source_type</code>、<code>source_id</code>、<code>period_start/end</code>、<code>metric_definition_id</code>、<code>verified_at</code>、<code>is_demo</code>、<code>is_estimated</code>、<code>artifact_id</code>、<code>derived_from</code>。这些属于目标模型，不是当前所有表已有的字段。</p>
+<h2 id="section-11">11｜经营指标与计算口径</h2>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>口径 / 算式</th>
+<th>需要明确的边界</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>粉丝净增</td>
+<td>新增关注 − 取消关注</td>
+<td>净增与内容归因关注不是同一指标</td>
+</tr>
+<tr>
+<td>播放量</td>
+<td>平台报表的播放次数</td>
+<td>不等于独立观看人数</td>
+</tr>
+<tr>
+<td>观看人次（月）</td>
+<td>当月各场观看人数相加</td>
+<td>跨场未去重，不能命名为全月独立用户</td>
+</tr>
+<tr>
+<td>在线峰值</td>
+<td>单场最高同时在线</td>
+<td>截图曲线节点与原报表可能口径 / 估值不同</td>
+</tr>
+<tr>
+<td>直播时长</td>
+<td>平台原始时长</td>
+<td>一场必须精确绑定，不能从曲线截图推算代替</td>
+</tr>
+<tr>
+<td>成交金额</td>
+<td>平台报表 GMV 字段按场求和</td>
+<td>不自动等于到账收入、扣退款收入或利润</td>
+</tr>
+<tr>
+<td>增长率</td>
+<td>(本期 − 上期) ÷ 上期</td>
+<td>上期为 0 时不计算常规增长率</td>
+</tr>
+<tr>
+<td>场次贡献</td>
+<td>某场 GMV ÷ 月度 GMV</td>
+<td>是构成贡献，不是因果归因</td>
+</tr>
+<tr>
+<td>转化率</td>
+<td>明确分子 ÷ 明确分母</td>
+<td>下单人数 / 观看人数，与订单数 / 商品曝光不同</td>
+</tr>
+<tr>
+<td>完播率 / 互动率</td>
+<td>使用平台定义或明确计算式</td>
+<td>缺少底层字段时不能自造分母</td>
+</tr>
+</tbody></table>
+<p><strong>可复核例子</strong>：当前导入的直播历史 CSV 共 261 条记录，覆盖 2025 年的历史场次。2025 年 7 月为 48 场，累计观看 143,374 人次，成交金额 ¥97,849；2025 年 10 月为 47 场、56,820 人次、¥24,352。这些是历史报表结果，不表示今天 2026 年 10 月的经营表现。</p>
+<p>月度图必须读取完整月份数据；零值与缺失值分开。截图提取曲线标明估读，汇总指标使用原报表。示例：2025-11-15 原表峰值 140，而截图节点约 131；两者应并列注明证据口径，不能无提示覆盖。</p>
+<h2 id="section-12">12｜北极星与验收指标</h2>
+<p><figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 550" role="img" aria-label="业务结果与产品验收的双指标体系"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10" fill="#7994c5"/></marker></defs><rect width="1120" height="550" rx="18" fill="white"/><g font-family="PingFang SC,Microsoft YaHei,Noto Sans CJK SC,sans-serif"><text x="34" y="38" font-size="23" font-weight="700" fill="#20324b">业务结果与产品验收的双指标体系</text><text x="34" y="65" font-size="13" fill="#72839b">建议目标不等于线上实测；内容归因关注不等于平台净增</text><rect x="34" y="218" width="230" height="110" rx="12" fill="#456fbd" stroke="#456fbd"/><text x="149.0" y="267.0" text-anchor="middle" fill="white" font-size="17" font-weight="650">有效内容行动</text><text x="149.0" y="291.0" text-anchor="middle" fill="white" font-size="13" font-weight="400">建议产品北极星</text><rect x="345" y="102" width="320" height="102" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="505.0" y="147.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">可信质量</text><text x="505.0" y="171.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">路由 / 时间 / 数值 / 来源</text><rect x="735" y="102" width="350" height="102" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="910.0" y="147.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">评测与埋点</text><text x="910.0" y="171.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">人工gold + 自动核对</text><path d="M264,273 H302 V153 H345" fill="none" stroke="#7994c5" stroke-width="2"/><path d="M665,153 L735,153" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="345" y="248" width="320" height="102" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="505.0" y="293.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">行动转化</text><text x="505.0" y="317.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">保存 / 排期 / 复用 / 执行</text><rect x="735" y="248" width="350" height="102" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="910.0" y="293.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">账号业务结果</text><text x="910.0" y="317.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">粉丝增长 / 成交 / 内容效果</text><path d="M264,273 H302 V299 H345" fill="none" stroke="#7994c5" stroke-width="2"/><path d="M665,299 L735,299" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="345" y="394" width="320" height="102" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="505.0" y="439.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">体验与成本</text><text x="505.0" y="463.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">成功率 / 延迟 / 重试 / token</text><rect x="735" y="394" width="350" height="102" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="910.0" y="439.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">评测与埋点</text><text x="910.0" y="463.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">按任务与模型分层监测</text><path d="M264,273 H302 V445 H345" fill="none" stroke="#7994c5" stroke-width="2"/><path d="M665,445 L735,445" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><text x="34" y="530" font-size="11" fill="#8a97a9">NORTHSTAR / CUE · 2026-10-10 · 实现状态详见正文</text></g></svg><figcaption>指标体系</figcaption></figure></p>
+<p><strong>业务北极星</strong>可以延续产品看板中的粉丝增长目标，结合成交表现，衡量账号经营结果；它受选题、平台分发、直播和商品等多因素影响，不能把增长全部归功于 AI。</p>
+<p><strong>产品北极星建议</strong>：每周有效内容行动数。定义为「有依据的 AI 产物经过用户确认并进入知识沉淀、排期或实际生产」的去重数量。单纯生成一条回答不计为行动；实际发布 / 开播还需后续业务回传验证。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>建议指标</th>
+<th>建议验收目标 / 测量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>意图</td>
+<td>五类路由准确率、改写问法鲁棒性</td>
+<td>≥95%；使用人工标注的多页面测试集</td>
+</tr>
+<tr>
+<td>数据</td>
+<td>数值准确率、时间范围正确率、来源覆盖率</td>
+<td>关键金额和时间必须与 gold 一致；时间正确率 ≥98%</td>
+</tr>
+<tr>
+<td>回答</td>
+<td>任务完成率、事实与建议区分、脚本可用性</td>
+<td>按任务 rubric 评分，记录缺失资料与失败原因</td>
+</tr>
+<tr>
+<td>可靠性</td>
+<td>请求成功率、超时率、重试成功率</td>
+<td>分模型、任务复杂度、附件类型统计，不混为一个均值</td>
+</tr>
+<tr>
+<td>体验</td>
+<td>首条用户消息展示延迟、排队丢失率</td>
+<td>提交立即展示；会话内队列顺序和附件不能丢失</td>
+</tr>
+<tr>
+<td>产物</td>
+<td>保存率、加入排期率、产物复用率</td>
+<td>answer_id → artifact_id → task_id 的事件链追踪</td>
+</tr>
+<tr>
+<td>活跃</td>
+<td>WAU、周留存、有效任务 / 活跃用户</td>
+<td>登录用户与访客分开，明确跨设备去重规则</td>
+</tr>
+<tr>
+<td>成本</td>
+<td>每任务 token、模型费用、解析成本</td>
+<td>记录模型、重试次数与产物完成情况</td>
+</tr>
+</tbody></table>
+<p>所有上述百分比为产品目标，并非当前线上实测成绩。现有点赞 / 点踩属于本机反馈，不是已经建立的集中评测数据仓库。</p>
+<p>建议埋点：<code>question_submitted</code>、<code>intent_resolved</code>、<code>retrieval_completed</code>、<code>answer_completed</code>、<code>answer_failed</code>、<code>continue_clicked</code>、<code>queue_added/removed</code>、<code>artifact_saved</code>、<code>planning_created</code>、<code>source_opened</code>。记录 request_id、conversation_id、route、耗时、错误类别及来源 ID；避免把整份敏感正文直接写入普通监控日志。</p>
+<h2 id="section-13">13｜超时、队列与恢复机制</h2>
+<p>简单问题的模型请求预算为 60 秒；复杂问题为 180 秒。当前复杂判断包括：继续操作、图片、多文档、较长问题，以及生成、改写、SOP、趋势、对比、结合、原因等关键词。这里采用程序规则，没有专用小模型。</p>
+<p><strong>实际工程边界</strong>：当前预算主要约束模型调用，不是包含分类、解析、检索和网络上传的端到端硬截止时间。线上代理等待设置为 210 秒；分类和回答是两次请求。后续应统一总 deadline，避免界面说 3 分钟而完整操作超过 3 分钟。</p>
+<p>「继续」当前会携带原问题、历史和资料重新请求，并给予复杂任务预算，不是模型的原地断点续写。超时与输出不完整返回结构化错误；网络连接错误应另外标识，不应全部提示用户重新配置模型。</p>
+<p>待发送队列目前在前端依次执行，保留附件与提交时上下文，支持删除排队问题；它不是服务端耐久作业队列。刷新、关闭页面或切换设备的恢复尚需建设。会话保存和后台长期任务需要分开定义。</p>
+<p><code>cue_tasks</code> 当前有周期配置的存储与 API，但未发现完整的生产调度执行器。创建了任务定义不等于已自动按时执行和推送。</p>
+<h2 id="section-14">14｜可视化与内容交付规范</h2>
+<p>AI 正文由 Markdown 渲染，支持标题、粗体、列表、表格和代码块；渲染前通过 DOMPurify 清理不安全标签。来源区域限制标题和摘要高度，避免整份长文挤满对话。</p>
+<p>当前 <code>chart</code> 代码块接受 <code>title/unit/labels/values</code>，生成简易 SVG 趋势折线；不是通用第三方 chart-render 服务，也不支持所有统计图。图表序列必须与正文、表格和来源同口径；缺失值不能补零。</p>
+<p>直播趋势图是独立组件，支持在线人数、成交金额、A/B/C 标注及悬停信息。页面曲线、关键画面和复盘话术应使用同一场次标识；示例卡片不能被描述为逐场真实回放。</p>
+<p>回答工具栏提供复制、重新生成、点赞、点踩和分享；分享在支持时调用系统分享，否则复制文本。不能把文本分享按钮描述为已经生成公网可访问的持久分享页。</p>
+<h2 id="section-15">15｜部署拓扑与交付检查</h2>
+<p>生产应用目录 <code>/opt/northstar</code>，前端静态目录 <code>/opt/northstar/frontend/dist</code>，后端 <code>/opt/northstar/backend</code>，业务数据库 <code>/opt/northstar/backend/data/northstar.db</code>。Nginx 负责 HTTPS 与代理，systemd 服务名 <code>northstar</code>。</p>
+<p>本轮发布前备份应用代码、静态页面、后端数据及服务端环境文件；保留原数据库和非模型配置，更新 GLM / MiniMax 配置。依赖补充包括 LibreOffice 和中文字体；线上媒体请求由 <code>/local-media</code> 转发至 FastAPI。代理文件大小调整至 510 MB，为单文件请求预留空间，不表示支持无限并发大文件。</p>
+<p>发布验收矩阵：静态首页与资源版本 → API 健康 → GLM 文本问答 → 多模态请求 → PPT 预览 → CSV 原文不自动下载 → 日期筛选 → 选中编辑颜色 → 会话与队列 → 保存知识和排期。当前已检查线上健康、GLM 简单问答和 PPT 转 PDF；其余要在真实浏览器和登录 / 访客两种路径继续回归。</p>
+<p>部署到云端不会自动搬迁用户浏览器 localStorage / IndexedDB 中的会话、修改和上传文件。跨设备使用需要显式导入或服务端同步；当前页面里的本地资料不能被误认为已全部进生产数据库。</p>
+<h2 id="section-16">16｜现有问题与演进路线</h2>
+<p><figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 620" role="img" aria-label="架构演进：当前实现与目标方案"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10" fill="#7994c5"/></marker></defs><rect width="1120" height="620" rx="18" fill="white"/><g font-family="PingFang SC,Microsoft YaHei,Noto Sans CJK SC,sans-serif"><text x="34" y="38" font-size="23" font-weight="700" fill="#20324b">架构演进：当前实现与目标方案</text><text x="34" y="65" font-size="13" fill="#72839b">多 Agent、动态 Skills 和统计工具应按收益引入；不把路线图写成已上线功能</text><rect x="34" y="103" width="490" height="78" rx="12" fill="#456fbd" stroke="#456fbd"/><text x="279.0" y="136.0" text-anchor="middle" fill="white" font-size="17" font-weight="650">当前：固定流程 + 单体 API</text><text x="279.0" y="160.0" text-anchor="middle" fill="white" font-size="13" font-weight="400">已实现 / 部分实现</text><rect x="595" y="103" width="490" height="78" rx="12" fill="#456fbd" stroke="#456fbd"/><text x="840.0" y="136.0" text-anchor="middle" fill="white" font-size="17" font-weight="650">目标：可观测的任务编排</text><text x="840.0" y="160.0" text-anchor="middle" fill="white" font-size="13" font-weight="400">规划方案</text><rect x="34" y="217" width="490" height="84" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="279.0" y="253.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">意图分类 + 关键词兜底</text><text x="279.0" y="277.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">五种模式 / 规则路由</text><rect x="595" y="217" width="490" height="84" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="840.0" y="253.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">任务计划 + 工具契约</text><text x="840.0" y="277.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">结构化schema / 权限边界</text><path d="M524,259 L595,259" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M279,301 L279,335" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M840,301 L840,335" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="34" y="335" width="490" height="84" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="279.0" y="371.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">静态资料 + SQLite 检索</text><text x="279.0" y="395.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">月度确定性计算 / 关键词召回</text><rect x="595" y="335" width="490" height="84" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="840.0" y="371.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">统一指标层 + 混合检索</text><text x="840.0" y="395.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">来源版本 / 覆盖度 / 稳定ID</text><path d="M524,377 L595,377" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M279,419 L279,453" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><path d="M840,419 L840,453" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><rect x="34" y="453" width="490" height="84" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="279.0" y="489.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">模型回答 + 本机队列</text><text x="279.0" y="513.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">草稿 / 保存 / 当前会话顺序执行</text><rect x="595" y="453" width="490" height="84" rx="12" fill="#f3f6fc" stroke="#c7d3e8"/><text x="840.0" y="489.0" text-anchor="middle" fill="#27394f" font-size="17" font-weight="650">持久作业 + 真实执行日志</text><text x="840.0" y="513.0" text-anchor="middle" fill="#27394f" font-size="13" font-weight="400">断点 / 重试 / 评测 / 效果回传</text><path d="M524,495 L595,495" fill="none" stroke="#7994c5" stroke-width="2" marker-end="url(#arrow)"/><text x="34" y="600" font-size="11" fill="#8a97a9">NORTHSTAR / CUE · 2026-10-10 · 实现状态详见正文</text></g></svg><figcaption>当前实现与目标架构</figcaption></figure></p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>工作重点</th>
+<th>具体交付</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>当前稳定版</td>
+<td>完成真实网站回归</td>
+<td>双身份路径、附件、上下文快照、来源、排期和错误恢复</td>
+</tr>
+<tr>
+<td>数据可信版</td>
+<td>统一事实与指标层</td>
+<td>报表导入版本、稳定 live_id、账号和日期过滤、数字 gold 测试</td>
+</tr>
+<tr>
+<td>知识生产版</td>
+<td>完整入库与检索</td>
+<td>对象存储、后台解析、覆盖度提示、混合检索与出处定位</td>
+</tr>
+<tr>
+<td>Agent 工程版</td>
+<td>统一编排与工具契约</td>
+<td>工具注册、输入输出 schema、实际 trace、重试、断点和持久队列</td>
+</tr>
+<tr>
+<td>运营增长版</td>
+<td>连通生产效果</td>
+<td>产物 → 发布 / 开播 → 结果回传，周期任务与协作权限</td>
+</tr>
+</tbody></table>
+<p>建议的 Agent 能力目录可分为：经营查询、直播复盘、竞品拆解、内容创作、知识检索、排期执行和媒体解析。每一类包含：适用任务、输入 schema、数据来源、计算方法、输出规范、失败恢复、测试样例。主编排器按任务加载规则和工具，再根据实际执行日志输出过程摘要。</p>
+<p>需要进一步分析或统计检验时，再加入受约束的计算工具。A/B 检验、回归和时序预测必须具备合适样本、实验设计与口径，这些能力需要单独实现和验证，目前不属于 NorthStar 的已上线能力。</p>
+<h2 id="section-17">17｜典型端到端流程：从直播高光到 SOP</h2>
+<ol>
+<li>用户选中一场直播，提交「把人气与下单高点话术沉淀为 SOP」。</li>
+<li>固定本场 ID、时间、报表指标、关键节点、可用话术和来源。</li>
+<li>路由到创意任务，读取复盘资料；缺少逐字稿时明确内容证据不完整。</li>
+<li>确定性计算节点附近指标变化，AI 组织话术结构和适用条件；不能推断未经证实的成交因果。</li>
+<li>输出 SOP：具体问题 → 阶段判断 → 金句 → 回应评论 → 匹配产品 → 自然介绍 → 复盘。</li>
+<li>用户选择加入知识库，保存文档与引用；再选择加入下次排期，生成可编辑任务。</li>
+<li>下一场使用该 SOP，回传观看、停留、成交等同口径指标，决定是否复用。</li>
+</ol>
+<p>当前实现能提供复盘资料、AI 草稿和保存入口；完整的节点窗口计算、逐字稿绑定与发布效果回传属于后续建设。</p>
+<h2 id="section-18">18｜代码导航与证据依据</h2>
+<table>
+<thead>
+<tr>
+<th>关注点</th>
+<th>主要代码位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>全局数据归一化、访客资料与排期</td>
+<td><code>frontend/src/store.js</code></td>
+</tr>
+<tr>
+<td>对话、上下文、意图分类、队列、产物操作</td>
+<td><code>frontend/src/components/CopilotPanel.vue</code></td>
+</tr>
+<tr>
+<td>Markdown 与 chart 渲染</td>
+<td><code>frontend/src/components/AnswerMarkdown.vue</code></td>
+</tr>
+<tr>
+<td>五种模式与细分路由</td>
+<td><code>backend/app/services/cue_routing.py</code>、<code>backend/app/routers/cue.py</code></td>
+</tr>
+<tr>
+<td>模型选择与服务调用</td>
+<td><code>backend/app/services/model_client.py</code>、<code>backend/app/config.py</code></td>
+</tr>
+<tr>
+<td>表结构与业务初始化</td>
+<td><code>backend/app/database.py</code></td>
+</tr>
+<tr>
+<td>知识空间、解析、分块、检索</td>
+<td><code>backend/app/services/knowledge.py</code>、<code>backend/app/routers/knowledge.py</code></td>
+</tr>
+<tr>
+<td>文件解析与浏览器原件保存</td>
+<td><code>frontend/src/data/parsePresentation.js</code>、<code>knowledgeLocalFiles.js</code></td>
+</tr>
+<tr>
+<td>媒体本地 / 线上路径</td>
+<td><code>frontend/server/localVideo.js</code>、<code>backend/app/routers/media.py</code></td>
+</tr>
+<tr>
+<td>PPT、表格和直播图表组件</td>
+<td><code>PresentationPreview.vue</code>、<code>SpreadsheetPreview.vue</code>、<code>LiveTrendChart.vue</code></td>
+</tr>
+<tr>
+<td>日期、排期和卡片身份</td>
+<td><code>frontend/src/data/planningPeriods.js</code>、<code>views/PlanningView.vue</code></td>
+</tr>
+<tr>
+<td>完整历史直播样本</td>
+<td><code>frontend/src/data/liveHistory.json</code>、静态 CSV 原件</td>
+</tr>
+<tr>
+<td>统一交互约定</td>
+<td><code>AI-UI-CONVENTIONS.md</code></td>
+</tr>
+</tbody></table>
+<p>这份文档是当前实现的审计与目标蓝图。新增功能、上线验证范围和指标实测结果，应随版本更新记录；不能把设计目标、示例资料和生产成绩混写。</p>
+</main></div></html>

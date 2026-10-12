@@ -1,0 +1,11 @@
+<script setup>
+import { ref, watch, nextTick } from 'vue'
+const props=defineProps({open:Boolean,title:String,message:String,confirmLabel:{type:String,default:'确认'}})
+const emit=defineEmits(['cancel','confirm'])
+const dialog=ref(null),cancelButton=ref(null)
+watch(()=>props.open,async(open)=>{await nextTick();if(open){dialog.value?.showModal();cancelButton.value?.focus()}else dialog.value?.close()})
+</script>
+<template><Teleport to="body"><dialog ref="dialog" class="northstar-confirm" aria-labelledby="confirm-title" aria-describedby="confirm-message" @cancel.prevent="emit('cancel')" @click="event=>{if(event.target===dialog)emit('cancel')}"><div class="confirm-body"><header><span class="confirm-icon">!</span><button aria-label="关闭确认窗口" @click="emit('cancel')">×</button></header><h2 id="confirm-title">{{title}}</h2><p id="confirm-message">{{message}}</p><footer><button ref="cancelButton" @click="emit('cancel')">取消</button><button class="confirm-primary" @click="emit('confirm')">{{confirmLabel}}</button></footer></div></dialog></Teleport></template>
+<style scoped>
+.northstar-confirm{width:min(420px,calc(100vw - 40px));padding:0;border:1px solid #dce8df;border-radius:18px;background:#fff;color:#1c3024;box-shadow:0 24px 80px #10251c33}.northstar-confirm::backdrop{background:rgba(17,36,25,.28);backdrop-filter:blur(3px)}.confirm-body{padding:26px}.confirm-body header{display:flex;justify-content:space-between;align-items:center}.confirm-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#edf6ef;color:#237548;font-weight:700}.confirm-body header button{border:0;background:transparent;color:#7a8b80;font-size:24px;cursor:pointer}.confirm-body h2{margin:18px 0 10px;font-size:20px;font-weight:650}.confirm-body p{margin:0;color:#69776f;font-size:14px;line-height:1.75;overflow-wrap:anywhere}.confirm-body footer{display:flex;justify-content:flex-end;gap:10px;margin-top:26px}.confirm-body footer button{border:1px solid #d9e3dc;padding:10px 20px;border-radius:9px;background:#fff;font:inherit;font-size:14px;cursor:pointer}.confirm-body footer .confirm-primary{background:#176f43;border-color:#176f43;color:#fff}.confirm-body button:focus-visible{outline:3px solid #a8d9bd;outline-offset:3px}
+</style>
