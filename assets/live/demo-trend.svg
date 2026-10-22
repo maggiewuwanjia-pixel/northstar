@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">
+  <rect width="1200" height="520" fill="#132019"/><g stroke="#446052" stroke-opacity=".45"><path d="M80 100H1130M80 190H1130M80 280H1130M80 370H1130M80 460H1130"/></g>
+  <path d="M80 430 C150 350 190 390 250 260 S340 150 420 210 S510 110 590 235 S690 330 750 280 S850 360 920 240 S1040 320 1130 205" fill="none" stroke="#26d579" stroke-width="8" stroke-linecap="round"/>
+  <path d="M80 450 L350 450 L390 320 L415 450 L550 450 L580 245 L602 450 L820 450 L850 330 L872 450 L1130 450" fill="none" stroke="#f7aa25" stroke-width="7" stroke-linejoin="round"/>
+  <text x="80" y="55" fill="#d8f3e0" font-size="25" font-family="Arial, sans-serif" font-weight="700">趋势图演示占位</text><text x="80" y="82" fill="#97b7a2" font-size="18" font-family="Arial, sans-serif">上传视频号后台截图后自动替换</text>
+</svg>
